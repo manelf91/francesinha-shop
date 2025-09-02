@@ -1,6 +1,7 @@
 package shop.francesinha.backend.controller;
 
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,9 @@ public class ProductController {
 
     @PutMapping
     public Product updateProduct(@Valid @RequestBody Product product) {
+        if (product.getId() == null) {
+            throw new RuntimeException("Product ID must not be null.");
+        }
         if (productRepository.findById(product.getId()).isEmpty()) {
             throw new RuntimeException("Product with ID " + product.getId() + " does not exist.");
         }

@@ -11,7 +11,7 @@ public class Inventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @JsonBackReference("inventory-product")
     @ManyToOne

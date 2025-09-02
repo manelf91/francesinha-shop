@@ -150,4 +150,34 @@ public class ProductControllerTest {
 
         Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
     }
+
+    @Test
+    public void updateProduct_ErrorEmptyName() throws Exception {
+        Product p = new Product();
+        p.setId(1L);
+        p.setName(""); // Empty name
+        Mockito.when(productRepository.findById(1L)).thenReturn(java.util.Optional.of(p));
+
+        mockMvc.perform(put("/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(p)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Name must not be empty")));
+
+        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
+    }
+
+    @Test
+    public void updateProduct_ErrorNullId() throws Exception {
+        Product p = new Product();
+        p.setId(null); // Null ID
+        p.setName("Updated Product");
+        mockMvc.perform(put("/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(p)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(result -> assertEquals("Product ID must not be null.", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+
+        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
+    }
 }
