@@ -1,14 +1,14 @@
-package shop.francesinha.backend.security;
+package shop.francesinha.backend.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import shop.francesinha.backend.security.ICustomUserDetailsService;
+import shop.francesinha.backend.security.JwtUtils;
 
 import java.util.Map;
 
@@ -41,15 +41,13 @@ public class AuthController {
             @RequestParam String password // Password from the form
     ) {
         // Authenticate the user programmatically
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
-        // Set the authentication in the SecurityContext
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return ResponseEntity.ok(Map.of(
                 "message", "User logged in successfully",
-                "token", jwtUtils.generateToken(authentication)));
+                "token", jwtUtils.generateToken(username)));
     }
 
     @PostMapping("/logout")

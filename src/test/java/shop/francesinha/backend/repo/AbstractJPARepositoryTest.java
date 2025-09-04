@@ -14,23 +14,19 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @ActiveProfiles("test")
-public class AbstractJPARepositoryTest {
+public abstract class AbstractJPARepositoryTest {
 
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("testuser")
-            .withPassword("testpass");
+    public static final MySQLContainer<?> container;
 
-    @Test
-    void contextLoads() {
-        System.out.println("MySQL running at: " + mysql.getJdbcUrl());
+    static {
+        container = new MySQLContainer<>("mysql:8.0")
+                .withDatabaseName("testdb")
+                .withUsername("testuser")
+                .withPassword("testpass");
+        container.start();
     }
 
-    @DynamicPropertySource
-    static void configure(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
+    public static String getJdbcUrl() { return container.getJdbcUrl(); }
+    public static String getUsername() { return container.getUsername(); }
+    public static String getPassword() { return container.getPassword(); }
 }

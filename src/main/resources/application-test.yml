@@ -3,5 +3,9 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-
-
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      max-lifetime: 18000  # shorter than MySQL timeout
+      connection-timeout: 30000

@@ -3,9 +3,9 @@ package shop.francesinha.backend.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -15,20 +15,20 @@ public class JwtUtils {
 
     private final String jwtSecret = "secretKeyExample123secretKeyExample123secretKeyExample123";
     private final long jwtExpirationMs = 3600000; //1 hour
+    Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     private SecretKey getSecretKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(Authentication auth) {
-        UserDetails user = (UserDetails) auth.getPrincipal();
+    public String generateToken(String username) {
         SecretKey key = getSecretKey();
 
         long now = System.currentTimeMillis();
-        assert user != null;
+        assert !"".equals(username);
         return Jwts.builder()
-                .claim("sub", user.getUsername())       // subject
+                .claim("sub", username)       // subject
                 .claim("iss", "myapp")         // issuer
                 .claim("iat", now / 1000)      // issued at (seconds)
                 .claim("exp", (now + jwtExpirationMs) / 1000) // expiration in seconds
@@ -38,6 +38,7 @@ public class JwtUtils {
 
     public String getUsernameFromToken(String token) {
         SecretKey key = getSecretKey();
+        logger.debug("This is the token {}", token);
         return Jwts.parser()
                 .verifyWith(key)
                 .build()

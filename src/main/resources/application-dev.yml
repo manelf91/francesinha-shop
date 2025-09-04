@@ -1,0 +1,3 @@
+logging:
+  level:
+    shop.francesinha.backend: DEBUG
