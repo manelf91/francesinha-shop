@@ -27,7 +27,7 @@ jobs:
           --health-retries=3
 
       mongo:
-        image: mongo:7.0
+        image: mongo:6.0
         ports:
           - 27017:27017
         options: >-
