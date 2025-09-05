@@ -1,0 +1,61 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongo --eval 'db.adminCommand(\"ping\")'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 20
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 20
+
+      - name: Set up Maven
+        uses: actions/setup-java@v3
+        with:
+          cache: maven
+
+      - name: Build
+        run: mvn clean package --batch-mode
+
+      - name: Run unit tests
+        run: mvn test --batch-mode
+
+      - name: Run integration tests
+        run: mvn verify -P integration-tests --batch-mode
