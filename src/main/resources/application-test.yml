@@ -9,3 +9,7 @@ spring:
       minimum-idle: 2
       max-lifetime: 18000  # shorter than MySQL timeout
       connection-timeout: 30000
+logging:
+  level:
+    shop.francesinha.backend: DEBUG
+    org.hibernate: ERROR

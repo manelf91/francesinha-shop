@@ -2,6 +2,7 @@ package shop.francesinha.backend.security;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class CustomUserDetailsService implements ICustomUserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
     private final IUserRepository userRepository;
@@ -34,12 +35,11 @@ public class CustomUserDetailsService implements ICustomUserDetailsService {
 
         return org.springframework.security.core.userdetails.User.withUsername(username)
                 .password(user.getEncryptedPassword())
-                .roles("USER")
+                .roles(user.getRoles().toArray(new String[0]))
                 .build();
     }
 
     // Utility to add a new user (from register endpoint)
-    @Override
     public void registerUser(String username, String password, String... roles) throws UserAlreadyExistAuthenticationException {
         User user = userRepository.findByUsername(username);
         if (user != null) {
@@ -48,8 +48,21 @@ public class CustomUserDetailsService implements ICustomUserDetailsService {
         userRepository.save(username, passwordEncoder.encode(password), roles);
     }
 
-    @Override
     public void deleteUser(String username) {
         userRepository.deleteByUsername(username);
+    }
+
+    public void addRoleToUser(String username, String role) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found: " + username);
+        }
+        List<String> roles = user.getRoles();
+        if (!roles.contains(role)) {
+            List<String> newRoles = new java.util.ArrayList<>(roles);
+            newRoles.add(role);
+            user.setRoles(newRoles);
+            userRepository.update(user);
+        }
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import shop.francesinha.backend.security.ICustomUserDetailsService;
+import shop.francesinha.backend.security.CustomUserDetailsService;
 import shop.francesinha.backend.security.JwtUtils;
 
 import java.util.Map;
@@ -18,9 +18,9 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
-    private final ICustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils, ICustomUserDetailsService userDetailsService) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils, CustomUserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;

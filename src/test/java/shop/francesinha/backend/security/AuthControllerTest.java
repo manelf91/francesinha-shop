@@ -2,14 +2,11 @@ package shop.francesinha.backend.security;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import shop.francesinha.backend.controller.AuthController;
 
 import java.util.Objects;
@@ -22,26 +19,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = AuthController.class)
 @ComponentScan(basePackages = "shop.francesinha.backend.security, shop.francesinha.backend.repo")
-public class AuthControllerTest {
-
-    @Autowired
-    MockMvc mockMvc;
+public class AuthControllerTest extends AbstractAuthControllerTest {
 
     @MockitoSpyBean
-    private ICustomUserDetailsService userDetailsService;
+    private CustomUserDetailsService userDetailsService;
 
     @Test
     public void testRegisterUser() throws Exception {
         String username = "testRegisterUser";
         String password = "testpassword";
 
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
+        registerUser(username, password)
+            .andExpect(status().isOk())
+            .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
     }
 
     @Test
@@ -50,27 +40,18 @@ public class AuthControllerTest {
         String password = "testpassword";
 
         // First, register the user
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk());
+        registerUser(username, password).andExpect(status().isOk());
 
         // Then, attempt to log in
-        String response = mockMvc.perform(post("/auth/login")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+        String loginResult = loginUser(username, password)
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
 
         //Check message
-        assertTrue(response.contains("User logged in successfully"));
+        assertTrue(loginResult.contains("User logged in successfully"));
 
         // Extract token from response
-        String token = Objects.requireNonNull(response.split("\"token\":\"")[1]).split("\"")[0];
+        String token = Objects.requireNonNull(loginResult.split("\"token\":\"")[1]).split("\"")[0];
         assertNotNull(token);
         assertFalse(token.isEmpty());
 
@@ -91,33 +72,18 @@ public class AuthControllerTest {
         String password = "testpassword";
 
         // First, register the user
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk());
+        registerUser(username, password).andExpect(status().isOk());
 
         // Then, attempt to log in
-        String response = mockMvc.perform(post("/auth/login")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+        String loginResult = loginUser(username, password)
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        //Check message
-        assertTrue(response.contains("User logged in successfully"));
-
         // Extract token from response
-        String token = Objects.requireNonNull(response.split("\"token\":\"")[1]).split("\"")[0];
-        assertNotNull(token);
-        assertFalse(token.isEmpty());
+        String token = Objects.requireNonNull(loginResult.split("\"token\":\"")[1]).split("\"")[0];
 
         // Now, call a secured endpoint with the token
-        mockMvc.perform(post("/auth/logout")
-                        .header("Authorization", "Bearer " + token))
+        postEndpointWithToken("/auth/logout", token)
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"message\":\"User logged out successfully\"}"));
     }
@@ -132,23 +98,15 @@ public class AuthControllerTest {
     public void testLoginUser_WrongPassword() throws Exception {
         String username = "testLoginUser_WrongPassword";
         String password = "testpassword";
+        String wrongPassword = "wrongpassword";
 
         // First, register the user
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk());
+        registerUser(username, password).andExpect(status().isOk());
 
         // Then, attempt to log in with wrong password
-        mockMvc.perform(post("/auth/login")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", "wrongpassword")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
+        loginUser(username, wrongPassword)
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
 
         // Verify that the userDetailsService's registerUser method was called
         Mockito.verify(userDetailsService, Mockito.times(1)).registerUser(username, password);
@@ -161,21 +119,12 @@ public class AuthControllerTest {
         String password = "testpassword";
 
         // First, register the user
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk());
+        registerUser(username, password).andExpect(status().isOk());
 
         // Attempt to register the same user again
-        mockMvc.perform(post("/auth/register")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().json("{\"message\":\"User already exists\"}"));
+        registerUser(username, password)
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().json("{\"message\":\"User already exists\"}"));
 
         // Verify that the userDetailsService's registerUser method was called twice
         Mockito.verify(userDetailsService, Mockito.times(2)).registerUser(username, password);
@@ -187,15 +136,36 @@ public class AuthControllerTest {
         String password = "somepassword";
 
         // Attempt to log in with a non-existent user
-        mockMvc.perform(post("/auth/login")
-                        .with(csrf().asHeader()) // optional if CSRF disabled
-                        .param("username", username)
-                        .param("password", password)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
+        loginUser(username, password)
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
 
         // Verify that the userDetailsService's loadUserByUsername method was called
         Mockito.verify(userDetailsService, Mockito.atLeastOnce()).loadUserByUsername(username);
+    }
+
+    @Test
+    public void testRegisterUser_MissingParameters() throws Exception {
+        // Missing username
+        registerUser(null, "somepassword").andExpect(status().isBadRequest());
+
+        // Missing password
+        registerUser("someuser", null).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testLoginUser_MissingParameters() throws Exception {
+        // Missing username
+        loginUser(null, "somepassword").andExpect(status().isBadRequest());
+
+        // Missing password
+        loginUser("someuser", null).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testLogoutUser_MissingToken() throws Exception {
+        mockMvc.perform(post("/auth/logout")
+                        .with(csrf().asHeader())) // optional if CSRF disabled
+                .andExpect(status().isForbidden());
     }
 }

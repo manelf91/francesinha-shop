@@ -14,13 +14,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
 public class WebSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private final ICustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
-    public WebSecurityConfig(JwtAuthenticationFilter jwtAuthFilter, ICustomUserDetailsService userDetailsService) {
+    public WebSecurityConfig(JwtAuthenticationFilter jwtAuthFilter, CustomUserDetailsService userDetailsService) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
     }
@@ -46,6 +45,7 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register").permitAll() // Allow access to registration and login endpoints
+                        .requestMatchers("/user/**").hasRole("ADMIN") // Secure /user/** endpoints for ADMIN role
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

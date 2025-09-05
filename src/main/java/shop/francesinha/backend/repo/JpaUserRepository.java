@@ -24,6 +24,11 @@ public interface JpaUserRepository extends JpaRepository<User, Long>, IUserRepos
     @Override
     public default User save(String username, String encryptedPassword, String[] roles) {
         User user = new User(username, encryptedPassword, roles);
-        return this.save(user);
+        return save(user);
+    }
+
+    @Override
+    public default User update(User user) {
+        return save(user);
     }
 }
