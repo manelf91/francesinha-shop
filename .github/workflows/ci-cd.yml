@@ -10,33 +10,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: rootpass
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpass
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
-      mongo:
-        image: mongo
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "echo 'db.runCommand("ping").ok' | mongosh --quiet"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --name mongo_container
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -48,11 +21,13 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Build
-        run: mvn clean package --batch-mode
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Run unit tests
-        run: mvn test --batch-mode
-
-      - name: Run integration tests
-        run: mvn verify -P integration-tests --batch-mode
+      - name: Build and run tests
+        run: mvn clean verify -P integration-tests -B
