@@ -27,14 +27,15 @@ jobs:
           --health-retries=3
 
       mongo:
-        image: mongo:6.0
+        image: mongo
         ports:
           - 27017:27017
         options: >-
-          --health-cmd="mongo --eval 'db.adminCommand(\"ping\")'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-cmd "echo 'db.runCommand("ping").ok' | mongosh --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --name mongo_container
 
     steps:
       - name: Checkout code
