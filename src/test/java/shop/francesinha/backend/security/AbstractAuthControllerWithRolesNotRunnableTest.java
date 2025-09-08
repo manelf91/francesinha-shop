@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.francesinha.backend.common.TestUtils;
+import shop.francesinha.backend.service.UserService;
 
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -19,9 +20,6 @@ public class AbstractAuthControllerWithRolesNotRunnableTest {
 
     @MockitoSpyBean
     private CustomUserDetailsService userDetailsService;
-
-    @MockitoSpyBean
-    private JwtUtils jwtUtils;
 
     @Test
     public void ShouldNotAccessAdminEndpointWithoutAuth() throws Exception {

@@ -6,7 +6,7 @@ import shop.francesinha.backend.controller.AuthController;
 import shop.francesinha.backend.controller.UserController;
 
 @WebMvcTest({AuthController.class, UserController.class})
-@ComponentScan(basePackages = "shop.francesinha.backend.security, shop.francesinha.backend.repo")
+@ComponentScan(basePackages = "shop.francesinha.backend.security, shop.francesinha.backend.repo, shop.francesinha.backend.service")
 public class AuthControllerWithRolesTest extends AbstractAuthControllerWithRolesNotRunnableTest {
     //this test will run AbstractAuthControllerWithRolesNotRunnableTest with InMemoryUserRepository
 }
