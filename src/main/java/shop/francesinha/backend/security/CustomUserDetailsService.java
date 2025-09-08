@@ -11,8 +11,7 @@ import shop.francesinha.backend.model.User;
 import shop.francesinha.backend.repo.IUserRepository;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -40,16 +39,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     // Utility to add a new user (from register endpoint)
-    public void registerUser(String username, String password, String... roles) throws UserAlreadyExistAuthenticationException {
+    public void registerUser(String username, String password, String ...roles) throws UserAlreadyExistAuthenticationException {
         User user = userRepository.findByUsername(username);
         if (user != null) {
             throw new UserAlreadyExistAuthenticationException("User already exists");
         }
-        userRepository.save(username, passwordEncoder.encode(password), roles);
-    }
-
-    public void deleteUser(String username) {
-        userRepository.deleteByUsername(username);
+        userRepository.save(username, passwordEncoder.encode(password), Set.of(roles));
     }
 
     public void addRoleToUser(String username, String role) {
@@ -57,12 +52,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
-        List<String> roles = user.getRoles();
+        Set<String> roles = user.getRoles();
         if (!roles.contains(role)) {
-            List<String> newRoles = new java.util.ArrayList<>(roles);
+            Set<String> newRoles = new java.util.HashSet<>(roles);
             newRoles.add(role);
             user.setRoles(newRoles);
             userRepository.update(user);
         }
+    }
+
+    public List<User> getUsersByRole(String admin) {
+        return userRepository.findByRolesContains(admin);
     }
 }

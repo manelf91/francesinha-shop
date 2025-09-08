@@ -13,7 +13,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DataMongoTest
 @Testcontainers
-public class ReviewRepositoryTest {
+public class ReviewRepositoryIT {
 
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
 

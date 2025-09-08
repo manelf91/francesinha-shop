@@ -5,6 +5,7 @@ import shop.francesinha.backend.model.User;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
@@ -13,8 +14,8 @@ public class InMemoryUserRepository implements IUserRepository {
     private final Map<String, User> registeredUsers = new ConcurrentHashMap<>();
 
     @Override
-    public void deleteByUsername(String username) {
-        registeredUsers.remove(username);
+    public void delete(User user) {
+        registeredUsers.remove(user.getUsername());
     }
 
     @Override
@@ -28,7 +29,7 @@ public class InMemoryUserRepository implements IUserRepository {
     }
 
     @Override
-    public User save(String username, String encryptedPassword, String[] roles) {
+    public User save(String username, String encryptedPassword, Set<String> roles) {
         User user = new User(username, encryptedPassword, roles);
         registeredUsers.put(username, user);
         return user;
@@ -38,5 +39,19 @@ public class InMemoryUserRepository implements IUserRepository {
     public User update(User user) {
         registeredUsers.put(user.getUsername(), user);
         return user;
+    }
+
+    @Override
+    public int countByRolesContains(String role) {
+        return (int) registeredUsers.values().stream()
+                .filter(user -> user.getRoles().contains(role))
+                .count();
+    }
+
+    @Override
+    public List<User> findByRolesContains(String role) {
+        return registeredUsers.values().stream()
+                .filter(user -> user.getRoles().contains(role))
+                .toList();
     }
 }

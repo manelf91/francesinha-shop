@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -21,11 +21,16 @@ public class User {
     @NotBlank(message = "Password must not be empty")
     private String encryptedPassword;
 
-    private List<String> roles;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<String> roles;
 
-    public User(String username, String password, String[] roles) {
+    public User () {
+    }
+
+    public User(String username, String password, Set<String> roles) {
         this.username = username;
         this.encryptedPassword = password;
-        this.roles = List.of(roles);
+        this.roles = roles;
     }
 }

@@ -3,13 +3,14 @@ package shop.francesinha.backend.repo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.context.annotation.Import;
 import shop.francesinha.backend.model.Inventory;
 import shop.francesinha.backend.model.Product;
+import shop.francesinha.backend.common.TestContainerConfig;
 
 @SpringBootTest
-@Testcontainers
-public class ProductRepositoryTest extends AbstractJPARepositoryTest {
+@Import(TestContainerConfig.class)
+public class ProductRepositoryIT {
 
     @Autowired
     private ProductRepository productRepository;
