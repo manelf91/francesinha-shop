@@ -3,6 +3,8 @@ package shop.francesinha.backend.security;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -11,12 +13,17 @@ import shop.francesinha.backend.common.TestUtils;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AbstractAuthControllerNotRunnableTest {
+@SpringBootTest
+@AutoConfigureMockMvc
+public class AuthControllerUserIT {
 
     @Autowired
     protected MockMvc mockMvc;
@@ -30,8 +37,8 @@ public class AbstractAuthControllerNotRunnableTest {
         String password = "testpassword";
 
         TestUtils.registerUser(mockMvc, username, password)
-            .andExpect(status().isOk())
-            .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
     }
 
     @Test
@@ -44,8 +51,8 @@ public class AbstractAuthControllerNotRunnableTest {
 
         // Then, attempt to log in
         String loginResult = TestUtils.loginUser(mockMvc, username, password)
-            .andExpect(status().isOk())
-            .andReturn().getResponse().getContentAsString();
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
 
         //Check message
         assertTrue(loginResult.contains("User logged in successfully"));
@@ -83,14 +90,15 @@ public class AbstractAuthControllerNotRunnableTest {
         String token = Objects.requireNonNull(loginResult.split("\"token\":\"")[1]).split("\"")[0];
 
         // Now, call a secured endpoint with the token
-        TestUtils.postEndpointWithToken(mockMvc, "/auth/logout", token)
+        TestUtils.postEndpointWithToken(mockMvc, "/auth/logout", null, token)
                 .andExpect(status().isOk())
                 .andExpect(content().json("{\"message\":\"User logged out successfully\"}"));
     }
 
     @Test
     public void testCallWithoutToken() throws Exception {
-        mockMvc.perform(post("/auth/logout"))
+        TestUtils.postEndpoint(mockMvc, "/auth/logout", null).andExpect(status().isForbidden());
+        TestUtils.postEndpointWithToken(mockMvc, "/auth/logout", null, "this is not a valid token")
                 .andExpect(status().isForbidden());
     }
 
@@ -105,8 +113,8 @@ public class AbstractAuthControllerNotRunnableTest {
 
         // Then, attempt to log in with wrong password
         TestUtils.loginUser(mockMvc, username, wrongPassword)
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
 
         // Verify that the userDetailsService's registerUser method was called
         Mockito.verify(userDetailsService, Mockito.times(1)).registerUser(username, password);
@@ -123,8 +131,8 @@ public class AbstractAuthControllerNotRunnableTest {
 
         // Attempt to register the same user again
         TestUtils.registerUser(mockMvc, username, password)
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().json("{\"message\":\"User already exists\"}"));
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().json("{\"message\":\"User already exists\"}"));
 
         // Verify that the userDetailsService's registerUser method was called twice
         Mockito.verify(userDetailsService, Mockito.times(2)).registerUser(username, password);
@@ -137,8 +145,8 @@ public class AbstractAuthControllerNotRunnableTest {
 
         // Attempt to log in with a non-existent user
         TestUtils.loginUser(mockMvc, username, password)
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().json("{\"message\":\"Invalid username or password\"}"));
 
         // Verify that the userDetailsService's loadUserByUsername method was called
         Mockito.verify(userDetailsService, Mockito.atLeastOnce()).loadUserByUsername(username);
@@ -160,12 +168,5 @@ public class AbstractAuthControllerNotRunnableTest {
 
         // Missing password
         TestUtils.loginUser(mockMvc, "someuser", null).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testLogoutUser_MissingToken() throws Exception {
-        mockMvc.perform(post("/auth/logout")
-                        .with(csrf().asHeader())) // optional if CSRF disabled
-                .andExpect(status().isForbidden());
     }
 }

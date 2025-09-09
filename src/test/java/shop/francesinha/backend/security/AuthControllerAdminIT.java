@@ -2,24 +2,31 @@ package shop.francesinha.backend.security;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.francesinha.backend.common.TestUtils;
+import shop.francesinha.backend.model.User;
 import shop.francesinha.backend.service.UserService;
 
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class AbstractAuthControllerWithRolesNotRunnableTest {
+@SpringBootTest
+@AutoConfigureMockMvc
+public class AuthControllerAdminIT {
 
     private static int userCount = 0;
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoSpyBean
-    private CustomUserDetailsService userDetailsService;
+    @Autowired
+    private UserService userService;
 
     @Test
     public void ShouldNotAccessAdminEndpointWithoutAuth() throws Exception {
@@ -28,13 +35,13 @@ public class AbstractAuthControllerWithRolesNotRunnableTest {
 
         // Register user with ADMIN role
         TestUtils.registerUser(mockMvc, username, password)
-            .andExpect(status().isOk())
-            .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
 
         // Log in the user
         String loginResult = TestUtils.loginUser(mockMvc, username, password)
-            .andExpect(status().isOk())
-            .andReturn().getResponse().getContentAsString();
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
 
         // Extract token from response
         String token = loginResult.split("\"token\":\"")[1].split("\"")[0];
@@ -51,23 +58,24 @@ public class AbstractAuthControllerWithRolesNotRunnableTest {
 
         // Register user with ADMIN role
         TestUtils.registerUser(mockMvc, username, password)
-            .andExpect(status().isOk())
-            .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"message\":\"User registered successfully\"}"));
 
         // Assign ADMIN role to the user
-        userDetailsService.addRoleToUser(username, "ADMIN");
+        User user = userService.findByUsername(username);
+        user.setRoles(Set.of("USER", "ADMIN"));
+        userService.saveUser(user);
 
         // Log in the user
         String loginResult = TestUtils.loginUser(mockMvc, username, password)
-            .andExpect(status().isOk())
-            .andReturn().getResponse().getContentAsString();
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
 
         // Extract token from response
         String token = loginResult.split("\"token\":\"")[1].split("\"")[0];
 
         // Access admin endpoint
         TestUtils.getEndpointWithToken(mockMvc, "/user", token)
-            .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
-
 }

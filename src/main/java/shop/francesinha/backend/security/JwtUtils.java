@@ -52,14 +52,9 @@ public class JwtUtils {
             SecretKey key = getSecretKey();
             Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
             return true;
-        } catch(SecurityException | MalformedJwtException e) {
-            throw new AuthenticationCredentialsNotFoundException("JWT was expired or incorrect");
-        } catch (ExpiredJwtException e) {
-            throw new AuthenticationCredentialsNotFoundException("Expired JWT token.");
-        } catch (UnsupportedJwtException e) {
-            throw new AuthenticationCredentialsNotFoundException("Unsupported JWT token.");
-        } catch (IllegalArgumentException e) {
-            throw new AuthenticationCredentialsNotFoundException("JWT token compact of handler are invalid.");
+        } catch(RuntimeException e) {
+            logger.debug(e.getMessage());
+            return false;
         }
     }
 }

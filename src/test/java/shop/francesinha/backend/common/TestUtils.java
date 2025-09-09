@@ -29,9 +29,19 @@ public class TestUtils {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED));
     }
 
-    public static ResultActions postEndpointWithToken(MockMvc mockMvc, String endpoint, String token) throws Exception {
+    public static ResultActions postEndpoint(MockMvc mockMvc, String endpoint, Object object) throws Exception {
+        return postEndpointWithToken(mockMvc, endpoint, object, "");
+    }
+
+    public static ResultActions postEndpointWithToken(MockMvc mockMvc, String endpoint, Object object, String token) throws Exception {
         return mockMvc.perform(post(endpoint)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(object != null ? new ObjectMapper().writeValueAsString(object) : "")
                 .header("Authorization", "Bearer " + token));
+    }
+
+    public static ResultActions getEndpoint(MockMvc mockMvc, String endpoint) throws Exception {
+        return getEndpointWithToken(mockMvc, endpoint, "");
     }
 
     public static ResultActions getEndpointWithToken(MockMvc mockMvc, String endpoint, String token) throws Exception {
@@ -39,9 +49,17 @@ public class TestUtils {
                 .header("Authorization", "Bearer " + token));
     }
 
+    public static ResultActions deleteEndpoint(MockMvc mockMvc, String endpoint) throws Exception {
+        return deleteEndpointWithToken(mockMvc, endpoint, "");
+    }
+
     public static ResultActions deleteEndpointWithToken(MockMvc mockMvc, String endpoint, String token) throws Exception {
         return mockMvc.perform(delete(endpoint)
                 .header("Authorization", "Bearer " + token));
+    }
+
+    public static ResultActions putEndpoint(MockMvc mockMvc, String endpoint, Object object) throws Exception {
+        return putEndpointWithToken(mockMvc, endpoint, object, "");
     }
 
     public static ResultActions putEndpointWithToken(MockMvc mockMvc, String endpoint, Object object, String token) throws Exception {

@@ -1,11 +1,13 @@
 package shop.francesinha.backend.exception;
 
+import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,21 +21,33 @@ public class GlobalExceptionHandler {
 
     private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleRuntime(RuntimeException ex) {
-        return Map.of("message", ex.getMessage());
-    }
-
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public Map<String, String> handleBadCredentialsException(BadCredentialsException ex) {
         return Map.of("message", "Invalid username or password");
     }
 
+    @ExceptionHandler(JwtException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> handleJwtException(JwtException ex) {
+        return Map.of("message", "Invalid or expired JWT token");
+    }
+
     @ExceptionHandler(DataAccessException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleDataAccessException(DataAccessException ex) {
+        return Map.of("message", ex.getMessage());
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+        return Map.of("message", ex.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleRuntime(RuntimeException ex) {
         return Map.of("message", ex.getMessage());
     }
 }

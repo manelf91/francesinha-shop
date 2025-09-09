@@ -2,14 +2,11 @@ package shop.francesinha.backend.repo;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import shop.francesinha.backend.model.Inventory;
 import shop.francesinha.backend.model.Product;
-import shop.francesinha.backend.common.TestContainerConfig;
 
-@SpringBootTest
-@Import(TestContainerConfig.class)
+@DataJpaTest
 public class ProductRepositoryIT {
 
     @Autowired

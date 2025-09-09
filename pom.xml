@@ -104,6 +104,12 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>9.4.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -129,9 +135,6 @@
                 <version>3.1.2</version>
                 <configuration>
                     <skipTests>${skipUTs}</skipTests>
-                    <excludes>
-                        <exclude>**/*NotRunnable*.java</exclude>
-                    </excludes>
                 </configuration>
             </plugin>
 
@@ -257,9 +260,6 @@
                             <includes>
                                 <include>**/*IT.java</include>
                             </includes>
-                            <excludes>
-                                <exclude>**/*NotRunnable*.java</exclude>
-                            </excludes>
                         </configuration>
                     </plugin>
                 </plugins>
