@@ -64,6 +64,7 @@ jobs:
           
           # Extract the root LINE counter (last occurrence in file)
           LINE_DATA=$(grep -E '<counter type="LINE"' "$JACOCO_FILE" | tail -1)
+          echo "LINE_DATA:    LINE_DATA"
           
           # Extract missed and covered values
           MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
