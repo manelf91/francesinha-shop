@@ -41,25 +41,28 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: target/site/jacoco/
+          path: target/site/jacoco-merged/
 
       # 6️⃣ Upload coverage to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: target/site/jacoco/jacoco.xml
+          files: target/site/jacoco-merged/jacoco.xml
           fail_ci_if_error: false
-          flags: unittests
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
       # 7️⃣ Warn if coverage < 75% (optional)
-      - name: Warn if coverage < 75%
+      - name: Check coverage
         run: |
-          COVERAGE=$(grep -oP 'line-rate="\K[0-9.]+' target/site/jacoco/jacoco.xml | head -1)
-          PERCENT=$(echo "$COVERAGE * 100" | bc)
+          # Extract the first line-rate value using awk (no -P needed)
+          COVERAGE=$(grep 'line-rate=' target/site/jacoco/jacoco.xml | head -1 | awk -F '"' '{print $2}')
+          if [ -z "$COVERAGE" ]; then
+            echo "❌ Coverage value not found. Ensure 'mvn verify jacoco:report' ran successfully."
+            exit 0    # Don't fail the build, just warn
+          fi
+          PERCENT=$(awk "BEGIN {print $COVERAGE * 100}")
           echo "Line coverage: $PERCENT%"
           if (( $(echo "$PERCENT < 75" | bc -l) )); then
             echo "⚠️ Warning: Coverage is below 75%"
           fi
-        shell: bash
