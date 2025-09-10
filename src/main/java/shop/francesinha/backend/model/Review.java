@@ -14,10 +14,10 @@ public class Review {
     private String id; // MongoDB uses String for the ID field
 
     @NotNull(message = "Customer cannot be null")
-    private Long customerId; // The customer who created the review
+    private String customerId; // The customer who created the review
 
     @NotNull(message = "Product cannot be null")
-    private Long productId; // The product being reviewed
+    private String productId; // The product being reviewed
 
     @NotNull(message = "Rating cannot be null")
     private Integer rating; // Rating out of 5

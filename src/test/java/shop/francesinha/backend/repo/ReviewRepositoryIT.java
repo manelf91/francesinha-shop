@@ -33,8 +33,8 @@ public class ReviewRepositoryIT {
     @Test
     void shouldPersistReview() {
         Review review = new Review();
-        review.setCustomerId(1L);
-        review.setProductId(2L);
+        review.setCustomerId("customer123");
+        review.setProductId("product456");
         review.setRating(5);
         review.setComment("Amazing product!");
 
