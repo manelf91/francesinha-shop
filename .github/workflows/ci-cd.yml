@@ -56,8 +56,8 @@ jobs:
       - name: Check coverage
         run: |
           # Use the last LINE counter for total project coverage
-          MISSED=$(grep '<counter type="LINE"' target/site/jacoco/jacoco.xml | tail -1 | sed -E 's/.*missed="([0-9]+)".*/\1/')
-          COVERED=$(grep '<counter type="LINE"' target/site/jacoco/jacoco.xml | tail -1 | sed -E 's/.*covered="([0-9]+)".*/\1/')
+          MISSED=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml | tail -1 | sed -E 's/.*missed="([0-9]+)".*/\1/')
+          COVERED=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml | tail -1 | sed -E 's/.*covered="([0-9]+)".*/\1/')
           
           TOTAL=$((MISSED + COVERED))
           
