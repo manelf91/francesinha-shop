@@ -54,7 +54,7 @@ jobs:
       # 7️⃣ Warn if coverage < 75% (optional)
       - name: Check coverage
         run: |
-          LINE=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml)
+          LINE=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml | tail -1)
           MISSED=$(echo "$LINE" | sed -E 's/.*missed="([0-9]+)".*/\1/')
           COVERED=$(echo "$LINE" | sed -E 's/.*covered="([0-9]+)".*/\1/')
           TOTAL=$((MISSED + COVERED))
