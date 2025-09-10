@@ -55,20 +55,19 @@ jobs:
       # 7️⃣ Warn if coverage < 75% (optional)
       - name: Check coverage
         run: |
-          # Use the last LINE counter for total project coverage
-          MISSED=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml | tail -1 | sed -E 's/.*missed="([0-9]+)".*/\1/')
-          COVERED=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml | tail -1 | sed -E 's/.*covered="([0-9]+)".*/\1/')
-          
+          LINE=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml)
+          MISSED=$(echo "$LINE" | sed -E 's/.*missed="([0-9]+)".*/\1/')
+          COVERED=$(echo "$LINE" | sed -E 's/.*covered="([0-9]+)".*/\1/')
           TOTAL=$((MISSED + COVERED))
-          
+      
           if [ "$TOTAL" -eq 0 ]; then
           echo "❌ No line coverage data found. Did JaCoCo run?"
-          exit 0  # Warn but don't fail
+          exit 0
           fi
-          
+      
           PERCENT=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
           echo "📊 Total line coverage: $PERCENT%"
-          
+      
           if (( $(echo "$PERCENT < 75" | bc -l) )); then
           echo "⚠️ Warning: Coverage is below 75%"
           fi
