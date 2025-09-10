@@ -43,33 +43,46 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco-merged/
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
         with:
+          file: target/site/jacoco-merged/jacoco.xml
+          flags: unittests
+          name: codecov-umbrella
           fail_ci_if_error: true
-          files: target/site/jacoco-merged/jacoco.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}  # Required for v4
 
       # 7️⃣ Warn if coverage < 75% (optional)
-      - name: Check coverage
+      - name: Calculate Line Coverage
         run: |
-          LINE=$(grep '<counter type="LINE"' target/site/jacoco-merged/jacoco.xml | tail -1)
-          MISSED=$(echo "$LINE" | sed -n 's/.*missed="\([0-9]\+\)".*/\1/p')
-          COVERED=$(echo "$LINE" | sed -n 's/.*covered="\([0-9]\+\)".*/\1/p')
+          JACOCO_FILE="target/site/jacoco-merged/jacoco.xml"
+          
+          if [ ! -f "$JACOCO_FILE" ]; then
+            echo "❌ JaCoCo file not found at $JACOCO_FILE"
+            exit 1
+          fi
+          
+          # Extract the root LINE counter (last occurrence in file)
+          LINE_DATA=$(grep -E '<counter type="LINE"' "$JACOCO_FILE" | tail -1)
+          
+          # Extract missed and covered values
+          MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
+          COVERED=$(echo "$LINE_DATA" | sed 's/.*covered="\([0-9]*\)".*/\1/')
           TOTAL=$((MISSED + COVERED))
-      
-          echo "Missed lines: $MISSED"
-          echo "Covered lines: $COVERED"
-          echo "Total lines: $TOTAL"
-          if [ "$TOTAL" -eq 0 ]; then
-            echo "❌ No line coverage data found. Did JaCoCo run?"
-            exit 0
+          
+          # Calculate percentage
+          if [ "$TOTAL" -gt 0 ]; then
+            PERCENTAGE=$(echo "scale=2; $COVERED * 100 / $TOTAL" | bc)
+          else
+            PERCENTAGE="0.00"
           fi
-      
-          PERCENT=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
-          echo "📊 Total line coverage: $PERCENT%"
-      
-          if (( $(echo "$PERCENT < 75" | bc -l) )); then
-            echo "⚠️ Warning: Coverage is below 75%"
-          fi
+          
+          # Display results
+          echo "📊 Line Coverage Summary"
+          echo "======================="
+          echo "Missed:    $MISSED"
+          echo "Covered:   $COVERED" 
+          echo "Total:     $TOTAL"
+          echo "Coverage:  $PERCENTAGE%"
+          
+          # Set environment variable for later use
