@@ -94,6 +94,18 @@ public class ProductControllerTest {
     }
 
     @Test
+    void saveProduct_NullName_ReturnsBadRequest() throws Exception {
+        Product p = new Product();
+        p.setName(null);
+
+        mockMvc.perform(post("/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(p)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Name must not be empty")));
+    }
+
+    @Test
     void updateProduct_ReturnsProduct() throws Exception {
         Product p = new Product();
         p.setId(3L);
