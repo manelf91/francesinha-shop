@@ -62,23 +62,9 @@ jobs:
             exit 1
           fi
           
-          # Extract the root LINE counter (last occurrence in file)
-          LINE_DATA=$(grep -E '<counter type="LINE"' "$JACOCO_FILE" | tail -1)
-          
-          # 1. Check if the file exists and show its size
-          ls -la target/site/jacoco-merged/jacoco.xml
-          
-          # 2. Check the last few lines of the file
-          tail -10 target/site/jacoco-merged/jacoco.xml
-          
-          # 3. Try a more specific grep pattern
-          grep 'type="LINE"' target/site/jacoco-merged/jacoco.xml
-          
-          # 4. If that doesn't work, try with different options
-          grep -F 'type="LINE"' target/site/jacoco-merged/jacoco.xml
-          
-          # 5. Show the actual characters around the LINE counter (to check for hidden characters)
-          grep -A1 -B1 'type="LINE"' target/site/jacoco-merged/jacoco.xml | head -20
+          # Read the entire file and extract all LINE counters, then get the last one
+          LINE_COUNTERS=$(grep -o '<counter type="LINE"[^>]*>' "$JACOCO_FILE")
+          LINE_DATA=$(echo "$LINE_COUNTERS" | tail -1)
           
           # Extract missed and covered values
           MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
@@ -87,11 +73,11 @@ jobs:
           
           # Calculate percentage
           if [ "$TOTAL" -gt 0 ]; then
-            PERCENTAGE=$(echo "scale=2; $COVERED * 100 / $TOTAL" | bc)
+          PERCENTAGE=$(echo "scale=2; $COVERED * 100 / $TOTAL" | bc)
           else
-            PERCENTAGE="0.00"
+          PERCENTAGE="0.00"
           fi
-          
+
           # Display results
           echo "📊 Line Coverage Summary"
           echo "======================="
@@ -99,5 +85,5 @@ jobs:
           echo "Covered:   $COVERED" 
           echo "Total:     $TOTAL"
           echo "Coverage:  $PERCENTAGE%"
-          
+
           # Set environment variable for later use
