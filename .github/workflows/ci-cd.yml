@@ -64,7 +64,21 @@ jobs:
           
           # Extract the root LINE counter (last occurrence in file)
           LINE_DATA=$(grep -E '<counter type="LINE"' "$JACOCO_FILE" | tail -1)
-          echo "LINE_DATA:    $LINE_DATA"
+          
+          # 1. Check if the file exists and show its size
+          ls -la target/site/jacoco-merged/jacoco.xml
+          
+          # 2. Check the last few lines of the file
+          tail -10 target/site/jacoco-merged/jacoco.xml
+          
+          # 3. Try a more specific grep pattern
+          grep 'type="LINE"' target/site/jacoco-merged/jacoco.xml
+          
+          # 4. If that doesn't work, try with different options
+          grep -F 'type="LINE"' target/site/jacoco-merged/jacoco.xml
+          
+          # 5. Show the actual characters around the LINE counter (to check for hidden characters)
+          grep -A1 -B1 'type="LINE"' target/site/jacoco-merged/jacoco.xml | head -20
           
           # Extract missed and covered values
           MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
