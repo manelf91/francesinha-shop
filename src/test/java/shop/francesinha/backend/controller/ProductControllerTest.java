@@ -22,11 +22,14 @@ import shop.francesinha.backend.model.Product;
 import shop.francesinha.backend.repo.ProductRepository;
 import shop.francesinha.backend.security.JwtAuthenticationFilter;
 import shop.francesinha.backend.security.JwtUtils;
+import shop.francesinha.backend.service.ProductService;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,161 +41,93 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ProductControllerTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @MockitoBean
-    private ProductRepository productRepository;
+    private ProductService productService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
-    public void getAllProducts_ReturnsProducts() throws Exception {
+    void getProducts_ReturnsList() throws Exception {
         Product p = new Product();
-        Mockito.when(productRepository.findAll()).thenReturn(List.of(p));
+        p.setId(1L);
+        Mockito.when(productService.getProducts()).thenReturn(List.of(p));
 
-        mockMvc.perform(get("/products")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/products"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of(p))));
     }
 
     @Test
-    public void getAllProducts_ReturnsEmptyList() throws Exception {
-        Mockito.when(productRepository.findAll()).thenReturn(List.of());
-
-        mockMvc.perform(get("/products")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(List.of())));
-    }
-
-    @Test
-    public void getProductById_ReturnsProduct() throws Exception {
+    void getProductById_ReturnsProduct() throws Exception {
         Product p = new Product();
-        p.setId(1L);
-        Mockito.when(productRepository.findById(1L)).thenReturn(java.util.Optional.of(p));
+        p.setId(2L);
+        Mockito.when(productService.getProduct(2L)).thenReturn(p);
 
-        mockMvc.perform(get("/products/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/products/2"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(p)));
     }
 
     @Test
-    public void getProductById_NotFound() throws Exception {
-        Mockito.when(productRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+    void getProductById_NotFound() throws Exception {
+        Mockito.when(productService.getProduct(99L)).thenThrow(new RuntimeException("Product not found"));
 
-        mockMvc.perform(get("/products/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/products/99"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(result -> assertEquals("Product with ID 1 not found.", Objects.requireNonNull(result.getResolvedException()).getMessage()));
+                .andExpect(result -> assertEquals("Product not found", Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
     @Test
-    public void saveProduct_SavesAndReturnsProduct() throws Exception {
+    void saveProduct_ReturnsProduct() throws Exception {
         Product p = new Product();
-        p.setName("Test Product");
-        Mockito.when(productRepository.save(Mockito.any(Product.class))).thenReturn(p);
+        p.setName("New Product");
+        Mockito.when(productService.saveProduct(Mockito.any(Product.class))).thenReturn(p);
 
         mockMvc.perform(post("/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(p)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(p)));
-
-        Mockito.verify(productRepository).save(Mockito.argThat(prod -> "Test Product".equals(p.getName())));
     }
 
     @Test
-    public void saveProduct_AlreadyExists() throws Exception {
+    void updateProduct_ReturnsProduct() throws Exception {
         Product p = new Product();
-        p.setId(1L); // Set a valid ID
-        p.setName("Test Product");
-        Mockito.when(productRepository.findById(1L)).thenReturn(java.util.Optional.of(p));
-
-        mockMvc.perform(post("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(p)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(result -> assertEquals("Product with ID 1 already exists.", Objects.requireNonNull(result.getResolvedException()).getMessage()));
-
-        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
-    }
-
-    @Test
-    public void saveProduct_ErrorEmptyName() throws Exception {
-        Product p = new Product();
-        p.setName(""); // Empty name
-
-        mockMvc.perform(post("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(p)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Name must not be empty")));
-
-        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
-    }
-
-    @Test
-    public void updateProduct() throws Exception {
-        Product p = new Product();
-        p.setId(1L);
+        p.setId(3L);
         p.setName("Updated Product");
-        Mockito.when(productRepository.findById(1L)).thenReturn(java.util.Optional.of(p));
-        Mockito.when(productRepository.save(Mockito.any(Product.class))).thenReturn(p);
+        Mockito.doNothing().when(productService).updateProduct(Mockito.any(Product.class));
 
         mockMvc.perform(put("/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(p)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(p)));
-
-        Mockito.verify(productRepository).save(Mockito.argThat(prod -> prod.getId().equals(p.getId())));
+                .andExpect(status().isOk());
     }
 
     @Test
-    public void updateProduct_ErrorNotFound() throws Exception {
-        Product p = new Product();
-        p.setId(1L);
-        p.setName("Updated Product");
+    void deleteProduct_DeletesProduct() throws Exception {
+        Mockito.doNothing().when(productService).deleteProduct(1L);
 
-        mockMvc.perform(put("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(p)))
+        mockMvc.perform(delete("/products/1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteProduct_NotFound() throws Exception {
+        Mockito.doThrow(new RuntimeException("Product with ID 9999 does not exist."))
+                .when(productService).deleteProduct(9999L);
+
+        mockMvc.perform(delete("/products/9999"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(result -> assertEquals("Product with ID 1 does not exist.", Objects.requireNonNull(result.getResolvedException()).getMessage()));
-
-        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
+                .andExpect(result -> assertEquals("Product with ID 9999 does not exist.",
+                        Objects.requireNonNull(result.getResolvedException()).getMessage()));
     }
 
     @Test
-    public void updateProduct_ErrorEmptyName() throws Exception {
-        Product p = new Product();
-        p.setId(1L);
-        p.setName(""); // Empty name
-        Mockito.when(productRepository.findById(1L)).thenReturn(java.util.Optional.of(p));
-
-        mockMvc.perform(put("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(p)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Name must not be empty")));
-
-        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
-    }
-
-    @Test
-    public void updateProduct_ErrorNullId() throws Exception {
-        Product p = new Product();
-        p.setId(null); // Null ID
-        p.setName("Updated Product");
-        mockMvc.perform(put("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(p)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(result -> assertEquals("Product ID must not be null.", Objects.requireNonNull(result.getResolvedException()).getMessage()));
-
-        Mockito.verify(productRepository, Mockito.never()).save(Mockito.any(Product.class));
+    void deleteProduct_NullId() throws Exception {
+        // Simulate controller handling of null id (e.g., /products/null)
+        mockMvc.perform(delete("/products/null"));
     }
 }

@@ -1,5 +1,6 @@
 package shop.francesinha.backend.repo;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -15,6 +16,9 @@ public class ProductRepositoryIT {
     @Autowired
     private InventoryRepository inventoryRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @Test
     void shouldPersistProduct() {
         var product = new Product();
@@ -22,6 +26,9 @@ public class ProductRepositoryIT {
         product.setPrice(9.99);
 
         var savedProduct = productRepository.save(product);
+
+        entityManager.flush();  // forces SQL INSERT
+        entityManager.clear();  // clears first-level cache
 
         assert savedProduct.getId() != null;
         assert productRepository.findById(savedProduct.getId()).isPresent();

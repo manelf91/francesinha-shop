@@ -1,4 +1,7 @@
+spring:
+  jpa:
+    show-sql: true
+
 logging:
   level:
     shop.francesinha.backend: DEBUG
-    org.hibernate: ERROR

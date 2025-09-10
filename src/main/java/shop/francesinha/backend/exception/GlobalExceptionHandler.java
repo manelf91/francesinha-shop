@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Map;
@@ -51,6 +52,12 @@ public class GlobalExceptionHandler {
         String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
         assert errorMessage != null;
         return Map.of("message", errorMessage);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return Map.of("message", "Invalid ID: " + ex.getValue());
     }
 
     @ExceptionHandler(RuntimeException.class)
