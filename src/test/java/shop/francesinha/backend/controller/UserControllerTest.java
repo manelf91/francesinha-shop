@@ -9,8 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import shop.francesinha.backend.common.TestUtils;
+import shop.francesinha.backend.dto.UserDTO;
 import shop.francesinha.backend.model.User;
 import shop.francesinha.backend.security.JwtAuthenticationFilter;
 import shop.francesinha.backend.service.UserService;
@@ -18,6 +18,7 @@ import shop.francesinha.backend.service.UserService;
 import java.util.List;
 import java.util.Set;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = UserController.class,
@@ -34,18 +35,15 @@ public class UserControllerTest {
 
     @Test
     public void shouldUpdateUser() throws Exception {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setRoles(Set.of("USER"));
-        user.setEncryptedPassword("newpassword");
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("testUser");
+        userDTO.setRoles(Set.of("USER"));
+        userDTO.setPassword("newPassword");
 
-        Mockito.when(userService.updateUser(Mockito.any(User.class))).thenReturn(user);
+        Mockito.doNothing().when(userService).updateUser(Mockito.any(UserDTO.class));
 
-        TestUtils.putEndpoint(mockMvc, "/user", user)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.roles[0]").value("USER"))
-                .andExpect(jsonPath("$.encryptedPassword").value("newpassword"));
+        TestUtils.putEndpoint(mockMvc, "/user", userDTO)
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -57,7 +55,7 @@ public class UserControllerTest {
         user2.setUsername("user2");
         List<User> users = List.of(user1, user2);
 
-        Mockito.when(userService.findAll()).thenReturn(users);
+        when(userService.findAll()).thenReturn(users);
         TestUtils.getEndpoint(mockMvc, "/user")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))

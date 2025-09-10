@@ -1,8 +1,11 @@
 package shop.francesinha.backend.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import shop.francesinha.backend.dto.UserDTO;
 import shop.francesinha.backend.model.User;
+import shop.francesinha.backend.repo.UserRepository;
 import shop.francesinha.backend.service.UserService;
 
 import java.util.List;
@@ -21,8 +24,8 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
-        return userService.updateUser(user);
+    public void updateUser(@Valid @RequestBody UserDTO user) {
+        userService.updateUser(user);
     }
 
     @DeleteMapping("/{username}")

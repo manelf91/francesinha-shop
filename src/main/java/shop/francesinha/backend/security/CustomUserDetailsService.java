@@ -1,26 +1,20 @@
 package shop.francesinha.backend.security;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import shop.francesinha.backend.exception.UserAlreadyExistAuthenticationException;
 import shop.francesinha.backend.model.User;
 import shop.francesinha.backend.service.UserService;
 
-import java.util.Set;
-
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final PasswordEncoder passwordEncoder;
     private final UserService userService;
 
-    public CustomUserDetailsService(UserService userService, @Lazy PasswordEncoder passwordEncoder) {
+    public CustomUserDetailsService(UserService userService) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     // Called by AuthenticationManager when someone tries to log in
@@ -43,6 +37,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (user != null) {
             throw new UserAlreadyExistAuthenticationException("User already exists");
         }
-        userService.saveUser(username, passwordEncoder.encode(password));
+        userService.saveUser(username, password);
     }
 }

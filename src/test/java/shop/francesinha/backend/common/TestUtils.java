@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 public class TestUtils {
 
+    private static ResultActions resultActions;
+
     public static ResultActions registerUser(MockMvc mockMvc, String username, String password) throws Exception {
         return mockMvc.perform(post("/auth/register")
                 .with(csrf().asHeader()) // optional if CSRF disabled

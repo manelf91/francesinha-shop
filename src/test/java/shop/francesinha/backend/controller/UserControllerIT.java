@@ -7,17 +7,19 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import shop.francesinha.backend.common.TestUtils;
+import shop.francesinha.backend.dto.UserDTO;
+import shop.francesinha.backend.dto.UserMapper;
 import shop.francesinha.backend.model.User;
 import shop.francesinha.backend.repo.UserRepository;
 import shop.francesinha.backend.service.UserService;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,6 +33,9 @@ public class UserControllerIT {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @MockitoSpyBean
     private UserRepository userRepository;
 
@@ -40,30 +45,81 @@ public class UserControllerIT {
     }
 
     @Test
-    public void shouldUpdateUserToAdmin() throws Exception {
+    public void shouldUpdateUserToAdminRole() throws Exception {
         String username = "userToUpdate";
         String password = "password";
         Set<String> roles = Set.of("USER");
-        User userToUpdate = new User(username, password, roles);
-        userService.saveUser(userToUpdate);
+        User userToUpdate = userService.saveUser(new User(username, password, roles));
         Mockito.clearInvocations(userRepository); // reset invocation count
 
-        // Update user details
-        userToUpdate.setRoles(Set.of("ADMIN", "USER"));
-        TestUtils.putEndpoint(mockMvc, "/user", userToUpdate)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(username))
-                .andExpect(jsonPath("$.roles", Matchers.hasItems("ADMIN", "USER")));
+        Set<String> newRoles = Set.of("ADMIN", "USER");
+        UserDTO userDTO = new UserDTO(username, password, newRoles);
 
-        Mockito.verify(userRepository).save(Mockito.argThat(u -> u.getUsername().equals(username) && u.getRoles().contains("ADMIN")));
+        // Update user details
+        TestUtils.putEndpoint(mockMvc, "/user", userDTO).andExpect(status().isOk());
+
+        Mockito.verify(userRepository).save(Mockito.argThat(u ->
+                u.getId().equals(userToUpdate.getId())
+                && u.getUsername().equals(username)
+                && u.getRoles().equals(newRoles)));
+
         User updatedUser = userService.findByUsername(username);
         assert updatedUser != null;
-        assert updatedUser.getRoles().contains("ADMIN");
+        assert updatedUser.getRoles().equals(newRoles);
+    }
+
+    @Test
+    public void shouldUpdateAdminToUserRole() throws Exception {
+        String username = "adminToUpdate";
+        String password = "password";
+        Set<String> roles = Set.of("ADMIN", "USER");
+        User adminToUpdate = userService.saveUser(new User(username, password, roles));
+        Mockito.clearInvocations(userRepository); // reset invocation count
+
+        Set<String> newRoles = Set.of("USER");
+        UserDTO userDTO = new UserDTO(username, password, newRoles);
+
+        // Update user details
+        TestUtils.putEndpoint(mockMvc, "/user", userDTO).andExpect(status().isOk());
+
+        Mockito.verify(userRepository).save(Mockito.argThat(u ->
+                u.getId().equals(adminToUpdate.getId())
+                        && u.getUsername().equals(username)
+                        && u.getRoles().equals(newRoles)));
+
+        User updatedUser = userService.findByUsername(username);
+        assert updatedUser != null;
+        assert updatedUser.getRoles().equals(newRoles);
+    }
+
+    @Test
+    public void shouldUpdateUserPassword() throws Exception {
+        String username = "userToChangePassword";
+        String oldPassword = "oldPassword";
+        String newPassword = "newPassword";
+        Set<String> roles = Set.of("USER");
+        User userToUpdate = userService.saveUser(new User(username, oldPassword, roles));
+        Mockito.clearInvocations(userRepository); // reset invocation count
+
+        UserDTO userDTO = new UserDTO(username, newPassword, roles);
+
+        // Update user details
+        TestUtils.putEndpoint(mockMvc, "/user", userDTO).andExpect(status().isOk());
+
+        Mockito.verify(userRepository).save(Mockito.argThat(u ->
+                u.getId().equals(userToUpdate.getId())
+                && u.getUsername().equals(username)
+                && passwordEncoder.matches(newPassword, u.getEncryptedPassword())
+                && u.getRoles().equals(roles)));
+
+        User updatedUser = userService.findByUsername(username);
+        assert updatedUser != null;
+        assert passwordEncoder.matches(newPassword, updatedUser.getEncryptedPassword());
     }
 
     @Test
     public void shouldNotUpdateNotExistentUser() throws Exception {
-        User nonExistentUser = new User("nonExistentUser", "password", Set.of("USER"));
+        UserDTO nonExistentUser = new UserDTO("nonExistentUser", "password", Set.of("USER"));
         TestUtils.putEndpoint(mockMvc, "/user", nonExistentUser)
                 .andExpect(status().isNotFound())
                 .andExpect(content().json("{\"message\":\"user not found\"}"));
@@ -104,15 +160,20 @@ public class UserControllerIT {
 
         for (int i = 0; i < admins.size(); i++) {
             User admin = admins.get(i);
-            admin.setRoles(Set.of("USER")); // Attempt to remove ADMIN role
-            ResultActions resultActions = TestUtils.putEndpoint(mockMvc, "/user", admin);
+            UserDTO adminDto = UserMapper.INSTANCE.toDTO(admin);
+            adminDto.setRoles(Set.of("USER")); // Attempt to remove ADMIN role
+            adminDto.setPassword("dummyPassword"); // set password to ensure update
+            ResultActions resultActions = TestUtils.putEndpoint(mockMvc, "/user", adminDto);
 
             if (i == admins.size() - 1) {
                 resultActions.andExpect(status().isBadRequest())
                         .andExpect(content().json("{\"message\":\"Cannot demote last admin\"}"));
             } else {
-                resultActions.andExpect(status().isOk())
-                        .andExpect(jsonPath("$.roles", Matchers.hasItems("USER")));
+                resultActions.andExpect(status().isOk());
+                // Verify that the user now has only USER role
+                User updatedUser = userService.findByUsername(admin.getUsername());
+                assert updatedUser != null;
+                assert updatedUser.getRoles().equals(Set.of("USER"));
             }
         }
 

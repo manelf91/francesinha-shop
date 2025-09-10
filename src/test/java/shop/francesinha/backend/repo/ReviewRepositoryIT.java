@@ -10,6 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import shop.francesinha.backend.model.Review;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataMongoTest
 @Testcontainers
@@ -41,7 +42,7 @@ public class ReviewRepositoryIT {
         assertThat(saved.getId()).isNotNull();
 
         Review savedReview = reviewRepository.findById(saved.getId()).orElse(null);
-        assertThat(savedReview).isNotNull();
+        assertNotNull(savedReview);
         assertThat(savedReview.getComment()).isEqualTo("Amazing product!");
     }
 }
