@@ -11,16 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up JDK 24
+      # 2️⃣ Set up JDK
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: 24
           distribution: temurin
+          java-version: 21
           cache: maven
 
+      # 3️⃣ Cache Maven dependencies
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
@@ -29,5 +32,33 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build and run tests
-        run: mvn clean verify -B
+      # 4️⃣ Build and run tests
+      - name: Build and run tests with coverage
+        run: mvn clean verify jacoco:report -B
+
+      # 5️⃣ Upload JaCoCo HTML report (optional)
+      - name: Upload JaCoCo report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+
+      # 6️⃣ Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: target/site/jacoco/jacoco.xml
+          fail_ci_if_error: false
+          flags: unittests
+          verbose: true
+
+      # 7️⃣ Warn if coverage < 75% (optional)
+      - name: Warn if coverage < 75%
+        run: |
+          COVERAGE=$(grep -oP 'line-rate="\K[0-9.]+' target/site/jacoco/jacoco.xml | head -1)
+          PERCENT=$(echo "$COVERAGE * 100" | bc)
+          echo "Line coverage: $PERCENT%"
+          if (( $(echo "$PERCENT < 75" | bc -l) )); then
+            echo "⚠️ Warning: Coverage is below 75%"
+          fi
+        shell: bash
