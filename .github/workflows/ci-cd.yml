@@ -34,7 +34,7 @@ jobs:
 
       # 4️⃣ Build and run tests
       - name: Build and run tests with coverage
-        run: mvn clean verify jacoco:report -B
+        run: mvn clean verify -B
 
       # 5️⃣ Upload JaCoCo HTML report (optional)
       - name: Upload JaCoCo report
@@ -51,6 +51,7 @@ jobs:
           fail_ci_if_error: false
           flags: unittests
           verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       # 7️⃣ Warn if coverage < 75% (optional)
       - name: Warn if coverage < 75%
