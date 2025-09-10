@@ -122,7 +122,6 @@
             <version>1.5.5.Final</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
     <build>
