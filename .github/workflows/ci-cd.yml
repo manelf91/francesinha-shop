@@ -43,14 +43,13 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco-merged/
 
-      # 6️⃣ Upload coverage to Codecov
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: target/site/jacoco-merged/jacoco.xml
-          fail_ci_if_error: false
-          verbose: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage reports to Codecov
+        run: |
+          # Replace `linux` below with the appropriate OS
+          # Options are `alpine`, `linux`, `macos`, `windows`
+          curl -Os https://cli.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov --verbose upload-process --fail-on-error -t ${{ secrets.CODECOV_TOKEN }} -n 'service'-${{ github.run_id }} -F service -f target/site/jacoco-merged/jacoco.xml
 
       # 7️⃣ Warn if coverage < 75% (optional)
       - name: Check coverage
