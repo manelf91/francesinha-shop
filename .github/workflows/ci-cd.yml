@@ -56,7 +56,7 @@ jobs:
       - name: Check coverage
         run: |
           # Extract the first line-rate value using awk (no -P needed)
-          COVERAGE=$(grep 'line-rate=' target/site/jacoco/jacoco.xml | head -1 | awk -F '"' '{print $2}')
+          COVERAGE=$(grep 'line-rate=' target/site/jacoco-merged/jacoco.xml | head -1 | awk -F '"' '{print $2}')
           if [ -z "$COVERAGE" ]; then
             echo "❌ Coverage value not found. Ensure 'mvn verify jacoco:report' ran successfully."
             exit 0    # Don't fail the build, just warn
