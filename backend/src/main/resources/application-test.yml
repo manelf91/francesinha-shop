@@ -1,0 +1,15 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/francesinha
+  datasource:
+    url: jdbc:mysql://localhost/francesinha?useSSL=false
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+logging:
+  level:
+    shop.francesinha.backend: DEBUG
+    org.hibernate: ERROR
