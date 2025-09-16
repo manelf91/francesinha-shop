@@ -1,0 +1,86 @@
+name: Francesinha-Shop CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-coverage:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [services-auth, services-products, services-reviews]
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Set up Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+
+      # 3️⃣ Build & run tests (unit + integration)
+      - name: Build & Test ${{ matrix.service }}
+        working-directory: ${{ matrix.service }}
+        run: mvn clean verify
+
+      # 4️⃣ Upload JaCoCo HTML report (optional)
+      - name: Upload JaCoCo report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report-${{ matrix.service }}
+          path: ${{ matrix.service }}/target/site/jacoco-merged/
+
+      # 5️⃣ Upload coverage reports to Codecov
+      - name: Upload coverage reports to Codecov
+        if: success()
+        uses: codecov/codecov-action@v4
+        with:
+          file: ${{ matrix.service }}/target/site/jacoco-merged/jacoco.xml
+          flags: unittests
+          name: codecov-${{ matrix.service }}
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # 6️⃣ Warn if coverage < 75%
+      - name: Calculate Line Coverage
+        if: success()
+        run: |
+          JACOCO_FILE="${{ matrix.service }}/target/site/jacoco-merged/jacoco.xml"
+          
+          if [ ! -f "$JACOCO_FILE" ]; then
+            echo "❌ JaCoCo file not found at $JACOCO_FILE"
+            exit 1
+          fi
+          
+          LINE_COUNTERS=$(grep -o '<counter type="LINE"[^>]*>' "$JACOCO_FILE")
+          LINE_DATA=$(echo "$LINE_COUNTERS" | tail -1)
+          
+          MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
+          COVERED=$(echo "$LINE_DATA" | sed 's/.*covered="\([0-9]*\)".*/\1/')
+          TOTAL=$((MISSED + COVERED))
+          
+          if [ "$TOTAL" -gt 0 ]; then
+            PERCENTAGE=$(echo "scale=2; $COVERED * 100 / $TOTAL" | bc)
+          else
+            PERCENTAGE="0.00"
+          fi
+
+          echo "📊 Line Coverage Summary for ${{ matrix.service }}"
+          echo "======================="
+          echo "Missed:    $MISSED"
+          echo "Covered:   $COVERED" 
+          echo "Total:     $TOTAL"
+          echo "Coverage:  $PERCENTAGE%"
+
+          if (( $(echo "$PERCENTAGE < 75" | bc -l) )); then
+            echo "⚠️ Coverage is below 75%!"
+            exit 1
+          fi

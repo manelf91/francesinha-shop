@@ -18,12 +18,12 @@ import java.util.Set;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(@Lazy PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       @Lazy PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -35,20 +35,8 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public List<User> findByRole(String role) {
-        return userRepository.findByRolesContains(role);
-    }
-
     public int countByRole(String role) {
         return userRepository.countByRolesContains(role);
-    }
-
-    public void saveUser(String username, String password) {
-        User user = new User();
-        user.setUsername(username);
-        user.setEncryptedPassword(passwordEncoder.encode(password));
-        user.setRoles(Set.of("USER"));
-        userRepository.save(user);
     }
 
     public UserDTO saveUser(UserDTO userDTO) {
