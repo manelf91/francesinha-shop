@@ -1,0 +1,14 @@
+server:
+  port: 8082
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/francesinha
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
+logging:
+  level:
+    shop.francesinha.backend: DEBUG

@@ -1,0 +1,21 @@
+server:
+  port: 8081
+spring:
+  datasource:
+    url: jdbc:mysql://localhost/francesinha_products?useSSL=false
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.web.filter: DEBUG
+    shop.francesinha.products: INFO
+    org.hibernate: ERROR
