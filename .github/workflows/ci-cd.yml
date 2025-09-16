@@ -2,9 +2,9 @@ name: Francesinha-Shop CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ microservices ]
   pull_request:
-    branches: [ main ]
+    branches: [ microservices ]
 
 jobs:
   build-test-coverage:
