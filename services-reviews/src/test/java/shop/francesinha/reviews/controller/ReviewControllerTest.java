@@ -10,9 +10,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.francesinha.reviews.common.TestUtils;
 import shop.francesinha.reviews.model.Review;
-import shop.francesinha.reviews.repo.ReviewRepository;
+import shop.francesinha.reviews.service.ReviewService;
 
-import java.util.Optional;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,7 +24,7 @@ public class ReviewControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ReviewRepository reviewRepository;
+    private ReviewService reviewService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -35,7 +34,7 @@ public class ReviewControllerTest {
         Review review = new Review();
         String id = String.valueOf(1L);
         review.setId(id);
-        Mockito.when(reviewRepository.findAll()).thenReturn(List.of(review));
+        Mockito.when(reviewService.getAllReviews()).thenReturn(List.of(review));
 
         TestUtils.getEndpoint(mockMvc, "/reviews")
                 .andExpect(status().isOk())
@@ -47,7 +46,7 @@ public class ReviewControllerTest {
         Review review = new Review();
         String id = String.valueOf(2L);
         review.setId(id);
-        Mockito.when(reviewRepository.findById(id)).thenReturn(Optional.of(review));
+        Mockito.when(reviewService.getReviewById(2L)).thenReturn(review);
 
         TestUtils.getEndpoint(mockMvc, "/reviews/2")
                 .andExpect(status().isOk())
@@ -61,7 +60,7 @@ public class ReviewControllerTest {
         review.setCustomerId("cust123");
         review.setRating(4);
         review.setProductId("prod456");
-        Mockito.when(reviewRepository.save(Mockito.any())).thenReturn(review);
+        Mockito.when(reviewService.saveReview(Mockito.any())).thenReturn(review);
 
         TestUtils.postEndpoint(mockMvc, "/reviews", review).andExpect(status().isOk());
     }
@@ -75,8 +74,8 @@ public class ReviewControllerTest {
         review.setCustomerId("cust123");
         review.setRating(4);
         review.setProductId("prod456");
-        Mockito.when(reviewRepository.findById(id)).thenReturn(Optional.of(review));
-        Mockito.when(reviewRepository.save(Mockito.any())).thenReturn(review);
+        Mockito.when(reviewService.getReviewById(3L)).thenReturn(review);
+        Mockito.doNothing().when(reviewService).updateReview(Mockito.any());
 
         TestUtils.putEndpoint(mockMvc, "/reviews", review).andExpect(status().isOk());
     }
