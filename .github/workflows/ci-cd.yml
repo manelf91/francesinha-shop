@@ -60,7 +60,7 @@ jobs:
             exit 1
           fi
           
-          LINE_COUNTERS=$(grep -o '<counter type="INSTRUCTIONS"[^>]*>' "$JACOCO_FILE")
+          LINE_COUNTERS=$(grep -o '<counter type="INSTRUCTION"[^>]*>' "$JACOCO_FILE")
           LINE_DATA=$(echo "$LINE_COUNTERS" | tail -1)
           
           MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
