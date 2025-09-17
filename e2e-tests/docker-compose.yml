@@ -6,7 +6,7 @@ services:
     working_dir: /app
     volumes:
       - ../services-auth:/app
-    command: mvn spring-boot:run
+    command: mvn spring-boot:run "-Dspring-boot.run.profiles=test"
     ports:
       - "8080:8080"
     healthcheck:
@@ -20,7 +20,7 @@ services:
     working_dir: /app
     volumes:
       - ../services-products:/app
-    command: mvn spring-boot:run
+    command: mvn spring-boot:run "-Dspring-boot.run.profiles=test"
     ports:
       - "8081:8081"
     healthcheck:
@@ -34,7 +34,7 @@ services:
     working_dir: /app
     volumes:
       - ../services-reviews:/app
-    command: mvn spring-boot:run
+    command: mvn spring-boot:run "-Dspring-boot.run.profiles=test"
     ports:
       - "8082:8082"
     healthcheck:
