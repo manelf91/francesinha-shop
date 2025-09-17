@@ -52,7 +52,7 @@ public class ReviewService {
         reviewRepository.deleteById(String.valueOf(id));
     }
 
-    private boolean productExists(String productId) {
+    public boolean productExists(String productId) {
         try {
             // Extract JWT from current authenticated user
             JwtAuthenticationToken auth = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();

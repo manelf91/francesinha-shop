@@ -124,6 +124,7 @@ public class ProductControllerTest {
     @Test
     void deleteProduct_NullId() throws Exception {
         // Simulate controller handling of null id (e.g., /products/null)
-        mockMvc.perform(delete("/products/null"));
+        mockMvc.perform(delete("/products/null"))
+                .andExpect(status().isBadRequest());
     }
 }

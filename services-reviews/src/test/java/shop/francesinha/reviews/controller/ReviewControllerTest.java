@@ -13,7 +13,9 @@ import shop.francesinha.reviews.model.Review;
 import shop.francesinha.reviews.service.ReviewService;
 
 import java.util.List;
+import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReviewController.class)
@@ -78,5 +80,38 @@ public class ReviewControllerTest {
         Mockito.doNothing().when(reviewService).updateReview(Mockito.any());
 
         TestUtils.putEndpoint(mockMvc, "/reviews", review).andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteReview() throws Exception {
+        Mockito.doNothing().when(reviewService).deleteReview(4L);
+        TestUtils.deleteEndpoint(mockMvc, "/reviews/4").andExpect(status().isOk());
+    }
+
+    @Test
+    void testSaveReview_NullProduct_ReturnsBadRequest() throws Exception {
+        Review review = new Review();
+        review.setComment("Nice");
+        review.setCustomerId("cust123");
+        review.setRating(5);
+        // ProductId is null
+
+        TestUtils.postEndpoint(mockMvc, "/reviews", review)
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Product cannot be null")));
+    }
+
+    @Test
+    void testDeleteReview_NotFound() throws Exception {
+        Mockito.doThrow(new RuntimeException("Review not found")).when(reviewService).deleteReview(99L);
+        TestUtils.deleteEndpoint(mockMvc, "/reviews/99")
+                .andExpect(status().isInternalServerError())
+                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Review not found")));
+    }
+
+    @Test
+    void testDeleteReview_InvalidId_ReturnsBadRequest() throws Exception {
+        TestUtils.deleteEndpoint(mockMvc, "/reviews/null")
+                .andExpect(status().isBadRequest());
     }
 }
