@@ -11,4 +11,7 @@ spring:
           jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
 logging:
   level:
-    shop.francesinha.backend: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.filter: DEBUG
+    shop.francesinha.products: INFO
+    org.hibernate: ERROR
