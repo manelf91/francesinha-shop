@@ -8,6 +8,8 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import shop.francesinha.products.model.Product;
 import shop.francesinha.products.repo.ProductRepository;
@@ -28,6 +30,9 @@ public class ProductCachingIT {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @MockitoBean
+    JwtDecoder jwtDecoder;  // <— satisfies WebSecurityConfig
 
     @Test
     void testProductsCache() {
