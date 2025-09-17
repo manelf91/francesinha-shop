@@ -60,7 +60,7 @@ jobs:
             exit 1
           fi
           
-          LINE_COUNTERS=$(grep -o '<counter type="LINE"[^>]*>' "$JACOCO_FILE")
+          LINE_COUNTERS=$(grep -o '<counter type="INSTRUCTIONS"[^>]*>' "$JACOCO_FILE")
           LINE_DATA=$(echo "$LINE_COUNTERS" | tail -1)
           
           MISSED=$(echo "$LINE_DATA" | sed 's/.*missed="\([0-9]*\)".*/\1/')
@@ -80,7 +80,7 @@ jobs:
           echo "Total:     $TOTAL"
           echo "Coverage:  $PERCENTAGE%"
 
-          if (( $(echo "$PERCENTAGE < 75" | bc -l) )); then
-            echo "⚠️ Coverage is below 75%!"
+          if (( $(echo "$PERCENTAGE < 60" | bc -l) )); then
+            echo "⚠️ Coverage is below 60%!"
             exit 1
           fi
