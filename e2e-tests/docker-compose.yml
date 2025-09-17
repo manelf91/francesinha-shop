@@ -43,8 +43,10 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      - auth
-      - products
+      auth:
+        condition: service_healthy
+      products:
+        condition: service_healthy
 
   e2e-tests:
     build: .
