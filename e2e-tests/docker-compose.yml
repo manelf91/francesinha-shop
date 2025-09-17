@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   auth:
-    image: openjdk:24
+    image: maven:3.9.9-eclipse-temurin-24
     working_dir: /app
     volumes:
       - ../services-auth:/app
@@ -11,7 +11,7 @@ services:
       - "8080:8080"
 
   products:
-    image: openjdk:24
+    image: maven:3.9.9-eclipse-temurin-24
     working_dir: /app
     volumes:
       - ../services-products:/app
@@ -20,7 +20,7 @@ services:
       - "8081:8081"
 
   reviews:
-    image: openjdk:24
+    image: maven:3.9.9-eclipse-temurin-24
     working_dir: /app
     volumes:
       - ../services-reviews:/app
@@ -33,7 +33,7 @@ services:
 
   e2e-tests:
     build: .
-    command: mvn verify -Pe2e
+    command: mvn verify
     depends_on:
       - auth
       - products
