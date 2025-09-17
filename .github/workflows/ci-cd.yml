@@ -100,7 +100,7 @@ jobs:
       - name: Build and Run E2E Tests
         run: |
           cd e2e-tests
-          docker-compose up --build --abort-on-container-exit
+          docker compose up --build --abort-on-container-exit
 
       - name: Upload JaCoCo report (E2E)
         uses: actions/upload-artifact@v4
@@ -121,4 +121,4 @@ jobs:
         if: always()
         run: |
           cd e2e-tests
-          docker-compose down -v
+          docker compose down -v
