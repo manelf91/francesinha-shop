@@ -37,6 +37,11 @@ services:
     command: mvn spring-boot:run
     ports:
       - "8082:8082"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       - auth
       - products
@@ -45,6 +50,9 @@ services:
     build: .
     command: mvn verify
     depends_on:
-      - auth
-      - products
-      - reviews
+      auth:
+        condition: service_healthy
+      products:
+        condition: service_healthy
+      reviews:
+        condition: service_healthy
