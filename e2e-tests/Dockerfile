@@ -1,5 +1,5 @@
 # Use Maven + JDK 24 as base image
-FROM maven:3.9-eclipse-temurin-24
+FROM maven:3.9.9-eclipse-temurin-24
 
 # Set working directory
 WORKDIR /app
