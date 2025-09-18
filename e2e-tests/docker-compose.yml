@@ -1,6 +1,20 @@
 version: "3.9"
 
 services:
+  mysql:
+    image: mysql:8.1
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: francesinha
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   auth:
     image: maven:3.9.9-eclipse-temurin-24
     working_dir: /app
@@ -9,6 +23,8 @@ services:
     command: mvn spring-boot:run "-Dspring-boot.run.profiles=test"
     ports:
       - "8080:8080"
+    depends_on:
+      - mysql
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -23,6 +39,8 @@ services:
     command: mvn spring-boot:run "-Dspring-boot.run.profiles=test"
     ports:
       - "8081:8081"
+    depends_on:
+      - mysql
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
       interval: 10s
@@ -52,6 +70,8 @@ services:
     build: .
     command: mvn verify
     depends_on:
+      mysql:
+        condition: service_healthy
       auth:
         condition: service_healthy
       products:
