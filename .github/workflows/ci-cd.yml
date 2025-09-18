@@ -102,21 +102,6 @@ jobs:
           cd e2e-tests
           docker compose up --build --abort-on-container-exit
 
-      - name: Upload JaCoCo report (E2E)
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-report-e2e
-          path: e2e-tests/target/site/jacoco-merged/
-
-      - name: Upload coverage reports to Codecov (E2E)
-        uses: codecov/codecov-action@v4
-        with:
-          file: e2e-tests/target/site/jacoco-merged/jacoco.xml
-          flags: e2e
-          name: codecov-e2e
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
       - name: Tear down containers
         if: always()
         run: |
