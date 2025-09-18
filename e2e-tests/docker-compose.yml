@@ -41,6 +41,9 @@ services:
       - "8081:8081"
     depends_on:
       - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
       interval: 10s

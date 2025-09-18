@@ -7,7 +7,7 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
       minimum-idle: 1
-    url: jdbc:mysql://localhost/francesinha_products?useSSL=false
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/francesinha_products?useSSL=false
     username: root
     password: 1234
   jpa:
