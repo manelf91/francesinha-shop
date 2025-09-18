@@ -2,6 +2,11 @@ server:
   port: 8081
 spring:
   datasource:
+    hikari:
+      initialization-fail-timeout: 60000
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 1
     url: jdbc:mysql://localhost/francesinha_products?useSSL=false
     username: root
     password: 1234
