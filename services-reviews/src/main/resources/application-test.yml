@@ -3,12 +3,12 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/francesinha
+      uri: mongodb://${MONGO_HOST:localhost}:27017/francesinha_reviews
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
+          jwk-set-uri: http://${AUTH_HOST:localhost}:8080/auth/.well-known/jwks.json
 logging:
   level:
     org.springframework.web: DEBUG
@@ -19,4 +19,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

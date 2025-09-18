@@ -15,9 +15,9 @@ public class E2ETests {
 
     private static String authToken;
     private static ProductDTO savedProduct;
-    private static final String authEndpoint = "http://localhost:8080";
-    private static final String productEndpoint = "http://localhost:8081";
-    private static final String reviewEndpoint = "http://localhost:8082";
+    private static final String authEndpoint = System.getenv().getOrDefault("AUTH_ENDPOINT", "http://localhost:8080");
+    private static final String productEndpoint = System.getenv().getOrDefault("PRODUCT_ENDPOINT", "http://localhost:8081");
+    private static final String reviewEndpoint = System.getenv().getOrDefault("REVIEW_ENDPOINT", "http://localhost:8082");
     private static WebClient productClient;
     private static WebClient reviewClient;
 

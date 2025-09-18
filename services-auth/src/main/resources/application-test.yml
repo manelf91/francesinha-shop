@@ -7,7 +7,7 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
       minimum-idle: 1
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/francesinha_users?useSSL=false
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/francesinha_users?useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 1234
   jpa:
@@ -25,4 +25,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

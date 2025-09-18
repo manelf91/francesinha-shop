@@ -59,7 +59,7 @@ public class ReviewService {
             String token = auth.getToken().getTokenValue();
 
             ((WebClient.RequestHeadersSpec<?>) webClient.get()
-                    .uri("http://localhost:8081/products/{id}", productId)
+                    .uri("/products/{id}", productId)
                     .headers(headers -> headers.setBearerAuth(token)))
                     .retrieve()
                     .bodyToMono(ProductDTO.class)

@@ -10,7 +10,11 @@ public class WebClientConfig {
     @Bean
     public WebClient productServiceWebClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:8081") // Product Service URL
+                .baseUrl(this.getProductServiceUrl()) // Product Service URL
                 .build();
+    }
+
+    private String getProductServiceUrl() {
+        return System.getenv().getOrDefault("PRODUCT_ENDPOINT", "http://localhost:8081");
     }
 }

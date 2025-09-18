@@ -40,6 +40,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/auth/register", "/auth/.well-known/jwks.json").permitAll() // Allow access to registration and login endpoints
                         .requestMatchers("/user/**").hasRole("ADMIN") // Secure /user/** endpoints for ADMIN role
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated()
                 );
 

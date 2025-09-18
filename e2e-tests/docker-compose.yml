@@ -4,76 +4,108 @@ services:
   mysql:
     image: mysql:8.1
     container_name: mysql
+    volumes:
+      - ./databases_init.sql:/docker-entrypoint-initdb.d/databases_init.sql:ro
     environment:
       MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: francesinha
     ports:
       - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 50
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_DATABASE: francesinha_reviews
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 20s
+      timeout: 5s
+      retries: 50
 
   auth:
-    image: maven:3.9.9-eclipse-temurin-24
+    build: .
     working_dir: /app
     volumes:
       - ../services-auth:/app
-    command: bash -c 'apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"'
+      - ~/.m2:/root/.m2
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 10s
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 50
+      start_period: 20s
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=test
 
   products:
-    image: maven:3.9.9-eclipse-temurin-24
+    build: .
     working_dir: /app
     volumes:
       - ../services-products:/app
-    command: bash -c 'apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"'
+      - ~/.m2:/root/.m2
     ports:
       - "8081:8081"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
+      AUTH_HOST: auth
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
-      interval: 10s
+      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 50
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=test
 
   reviews:
-    image: maven:3.9.9-eclipse-temurin-24
+    build: .
     working_dir: /app
     volumes:
       - ../services-reviews:/app
-    command: bash -c 'apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"'
+      - ~/.m2:/root/.m2
     ports:
       - "8082:8082"
+    environment:
+      AUTH_HOST: auth
+      MONGO_HOST: mongodb
+      MONGO_USER: root
+      MONGO_PASSWORD: example
+      PRODUCT_ENDPOINT: http://products:8081
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
-      interval: 10s
+      test: "curl --fail --silent localhost:8082/actuator/health | grep UP || exit 1"
+      interval: 20s
       timeout: 5s
-      retries: 5
+      retries: 500
+      start_period: 20s
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=test
     depends_on:
-      auth:
-        condition: service_healthy
-      products:
+      mongodb:
         condition: service_healthy
 
   e2e-tests:
     build: .
+    volumes:
+      - ~/.m2:/root/.m2
+    environment:
+      AUTH_ENDPOINT: http://auth:8080
+      PRODUCT_ENDPOINT: http://products:8081
+      REVIEW_ENDPOINT: http://reviews:8082
     command: mvn verify
     depends_on:
       mysql:

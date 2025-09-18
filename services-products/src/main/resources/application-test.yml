@@ -7,7 +7,7 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
       minimum-idle: 1
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/francesinha_products?useSSL=false
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/francesinha_products?useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 1234
   jpa:
@@ -19,7 +19,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
+          jwk-set-uri: http://${AUTH_HOST:localhost}:8080/auth/.well-known/jwks.json
 logging:
   level:
     org.springframework.web: DEBUG
@@ -30,4 +30,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
