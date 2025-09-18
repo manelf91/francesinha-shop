@@ -20,7 +20,7 @@ services:
     working_dir: /app
     volumes:
       - ../services-auth:/app
-    command: bash -c "apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"
+    command: bash -c 'apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"'
     ports:
       - "8080:8080"
     depends_on:
@@ -39,7 +39,7 @@ services:
     working_dir: /app
     volumes:
       - ../services-products:/app
-    command: bash -c "apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"
+    command: bash -c 'apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"'
     ports:
       - "8081:8081"
     depends_on:
@@ -58,7 +58,7 @@ services:
     working_dir: /app
     volumes:
       - ../services-reviews:/app
-    command: bash -c "apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"
+    command: bash -c 'apt-get update && apt-get install -y curl && mvn spring-boot:run "-Dspring-boot.run.profiles=test"'
     ports:
       - "8082:8082"
     healthcheck:
