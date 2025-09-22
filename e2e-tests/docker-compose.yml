@@ -30,7 +30,7 @@ services:
       retries: 50
 
   auth:
-    build: .
+    image: maven:3.9.9-eclipse-temurin-24
     working_dir: /app
     volumes:
       - ../services-auth:/app
