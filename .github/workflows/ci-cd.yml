@@ -107,5 +107,5 @@ jobs:
       - name: Tear down containers
         if: always()
         run: |
-          cd e2e-tests
+          cd docker
           docker compose down -v
