@@ -99,10 +99,10 @@ jobs:
 
       - name: Build and Run E2E Tests
         run: |
-          cd e2e-tests
-          docker compose pull --quiet
-          docker compose build --quiet
-          DOCKER_BUILDKIT=0 docker compose up --quiet-pull --abort-on-container-exit
+          cd docker
+          docker compose -f docker-compose.yml -f docker-compose.override.yml --profile dev pull --quiet
+          docker compose -f docker-compose.yml -f docker-compose.override.yml --profile dev build --quiet
+          DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker-compose.override.yml --profile dev up --quiet-pull --abort-on-container-exit
 
       - name: Tear down containers
         if: always()
