@@ -39,6 +39,12 @@ public class GlobalExceptionHandler {
         return Map.of("message", "Invalid ID: " + ex.getValue());
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleProductNotFound(ProductNotFoundException ex) {
+        return Map.of("message", ex.getMessage());
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleRuntime(RuntimeException ex) {

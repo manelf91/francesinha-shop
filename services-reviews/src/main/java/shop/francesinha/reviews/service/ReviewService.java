@@ -1,11 +1,15 @@
 package shop.francesinha.reviews.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import shop.francesinha.reviews.dto.ProductDTO;
+import shop.francesinha.reviews.dto.ProductDeletedEvent;
 import shop.francesinha.reviews.model.Review;
 import shop.francesinha.reviews.repo.ReviewRepository;
 
@@ -20,12 +24,14 @@ public class ReviewService {
     @Autowired
     private WebClient webClient;
 
+    private final Logger logger = LoggerFactory.getLogger(ReviewService.class);
+
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
     }
 
-    public Review getReviewById(Long id) {
-        return reviewRepository.findById(String.valueOf(id)).orElseThrow(() -> new RuntimeException("Review not found"));
+    public Review getReviewById(String id) {
+        return reviewRepository.findById(id).orElseThrow(() -> new RuntimeException("Review not found"));
     }
 
     public Review saveReview(Review review) {
@@ -48,8 +54,8 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    public void deleteReview(Long id) {
-        reviewRepository.deleteById(String.valueOf(id));
+    public void deleteReview(String id) {
+        reviewRepository.deleteById(id);
     }
 
     public boolean productExists(String productId) {
@@ -68,5 +74,13 @@ public class ReviewService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @KafkaListener(topics = "product-deleted", groupId = "reviews-service")
+    public void onProductDeleted(ProductDeletedEvent event) {
+        Long productId = event.getProductId();
+        // idempotent deletion
+        reviewRepository.deleteByProductId(productId);
+        logger.info("Deleted reviews for product {}", productId);
     }
 }

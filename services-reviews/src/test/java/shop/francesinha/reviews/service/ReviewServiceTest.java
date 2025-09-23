@@ -43,18 +43,20 @@ class ReviewServiceTest {
     @Test
     void testGetReviewByIdFound() {
         Review review = new Review();
-        review.setId("1");
+        String id = "1";
+        review.setId(id);
         review.setComment("Test");
-        when(reviewRepository.findById("1")).thenReturn(Optional.of(review));
+        when(reviewRepository.findById(id)).thenReturn(Optional.of(review));
 
-        Review result = reviewService.getReviewById(1L);
+        Review result = reviewService.getReviewById(id);
         assertEquals("Test", result.getComment());
     }
 
     @Test
     void testGetReviewByIdNotFound() {
-        when(reviewRepository.findById("2")).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> reviewService.getReviewById(2L));
+        String id = "2";
+        when(reviewRepository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> reviewService.getReviewById(id));
     }
 
     @Test
@@ -83,11 +85,12 @@ class ReviewServiceTest {
     @Test
     void testUpdateReviewSuccess() {
         Review review = new Review();
-        review.setId("1");
+        String id = "1";
+        review.setId(id);
         review.setProductId("prod1");
         ReviewService spyService = Mockito.spy(reviewService);
         doReturn(true).when(spyService).productExists("prod1");
-        when(reviewRepository.findById("1")).thenReturn(Optional.of(review));
+        when(reviewRepository.findById(id)).thenReturn(Optional.of(review));
         when(reviewRepository.save(review)).thenReturn(review);
 
         assertDoesNotThrow(() -> spyService.updateReview(review));
@@ -104,8 +107,9 @@ class ReviewServiceTest {
     @Test
     void testUpdateReviewNotFound() {
         Review review = new Review();
-        review.setId("2");
-        when(reviewRepository.findById("2")).thenReturn(Optional.empty());
+        String id = "2";
+        review.setId(id);
+        when(reviewRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> reviewService.updateReview(review));
     }
@@ -113,20 +117,22 @@ class ReviewServiceTest {
     @Test
     void testUpdateReviewProductNotExists() {
         Review review = new Review();
-        review.setId("1");
+        String id = "1";
+        review.setId(id);
         review.setProductId("prod2");
         ReviewService spyService = Mockito.spy(reviewService);
         doReturn(false).when(spyService).productExists("prod2");
-        when(reviewRepository.findById("1")).thenReturn(Optional.of(review));
+        when(reviewRepository.findById(id)).thenReturn(Optional.of(review));
 
         assertThrows(RuntimeException.class, () -> spyService.updateReview(review));
     }
 
     @Test
     void testDeleteReview() {
-        doNothing().when(reviewRepository).deleteById("1");
+        String id = "1";
+        doNothing().when(reviewRepository).deleteById(id);
 
-        assertDoesNotThrow(() -> reviewService.deleteReview(1L));
-        verify(reviewRepository, times(1)).deleteById("1");
+        assertDoesNotThrow(() -> reviewService.deleteReview(id));
+        verify(reviewRepository, times(1)).deleteById(id);
     }
 }

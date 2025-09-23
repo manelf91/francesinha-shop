@@ -6,7 +6,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.francesinha.reviews.common.TestUtils;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ReviewController.class)
@@ -48,11 +46,11 @@ public class ReviewControllerTest {
     @Test
     void testGetReviewById() throws Exception {
         Review review = new Review();
-        String id = String.valueOf(2L);
+        String id = "2";
         review.setId(id);
-        Mockito.when(reviewService.getReviewById(2L)).thenReturn(review);
+        Mockito.when(reviewService.getReviewById(id)).thenReturn(review);
 
-        TestUtils.getEndpoint(mockMvc, "/reviews/2")
+        TestUtils.getEndpoint(mockMvc, "/reviews/" + id)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id));
     }
@@ -72,13 +70,13 @@ public class ReviewControllerTest {
     @Test
     void testUpdateReview() throws Exception {
         Review review = new Review();
-        String id = String.valueOf(3L);
+        String id = "3L";
         review.setId(id);
         review.setComment("lovely product!");
         review.setCustomerId("cust123");
         review.setRating(4);
         review.setProductId("prod456");
-        Mockito.when(reviewService.getReviewById(3L)).thenReturn(review);
+        Mockito.when(reviewService.getReviewById(id)).thenReturn(review);
         Mockito.doNothing().when(reviewService).updateReview(Mockito.any());
 
         TestUtils.putEndpoint(mockMvc, "/reviews", review).andExpect(status().isOk());
@@ -86,7 +84,7 @@ public class ReviewControllerTest {
 
     @Test
     void testDeleteReview() throws Exception {
-        Mockito.doNothing().when(reviewService).deleteReview(4L);
+        Mockito.doNothing().when(reviewService).deleteReview("4");
         TestUtils.deleteEndpoint(mockMvc, "/reviews/4").andExpect(status().isOk());
     }
 
@@ -105,15 +103,9 @@ public class ReviewControllerTest {
 
     @Test
     void testDeleteReview_NotFound() throws Exception {
-        Mockito.doThrow(new RuntimeException("Review not found")).when(reviewService).deleteReview(99L);
+        Mockito.doThrow(new RuntimeException("Review not found")).when(reviewService).deleteReview("99");
         TestUtils.deleteEndpoint(mockMvc, "/reviews/99")
                 .andExpect(status().isInternalServerError())
                 .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Review not found")));
-    }
-
-    @Test
-    void testDeleteReview_InvalidId_ReturnsBadRequest() throws Exception {
-        TestUtils.deleteEndpoint(mockMvc, "/reviews/null")
-                .andExpect(status().isBadRequest());
     }
 }

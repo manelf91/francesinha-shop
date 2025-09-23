@@ -111,8 +111,8 @@ public class ProductControllerIT {
     @Test
     void deleteProduct_NotFound() throws Exception {
         mockMvc.perform(delete("/products/9999"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Product with ID 9999 does not exist."));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Product with ID 9999 not found."));
     }
 
     @Test

@@ -20,6 +20,8 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: http://${AUTH_HOST:localhost}:8080/auth/.well-known/jwks.json
+  kafka:
+    bootstrap-servers: kafka:9092  # or localhost:9092 depending on Docker
 logging:
   level:
     org.springframework.web: DEBUG

@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class E2ETests {
 
     private static String authToken;
-    private static ProductDTO savedProduct;
     private static final String authEndpoint = System.getenv().getOrDefault("AUTH_ENDPOINT", "http://localhost:8080");
     private static final String productEndpoint = System.getenv().getOrDefault("PRODUCT_ENDPOINT", "http://localhost:8081");
     private static final String reviewEndpoint = System.getenv().getOrDefault("REVIEW_ENDPOINT", "http://localhost:8082");
@@ -25,38 +24,89 @@ public class E2ETests {
     static void setup() {
         login();
         assertNotNull(authToken, "JWT token must not be null");
-
-        // Create a product
-        ProductDTO product = new ProductDTO(null, "Test Product", 9.99);
-        savedProduct = getProductWebClient().post()
-                .uri("/products")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
-                .bodyValue(product)
-                .retrieve()
-                .bodyToMono(ProductDTO.class)
-                .block();
-        assertNotNull(savedProduct);
-        assertNotNull(savedProduct.id());
     }
 
     @Test
     void testProductExistsAndReviewCanBeCreated() {
+        // Create a product
+        ProductDTO savedProduct = createProduct();
+        assertNotNull(savedProduct);
+        assertNotNull(savedProduct.id());
+
         // Post a review for that product
-        ReviewDTO review = new ReviewDTO(savedProduct.id(), "cust01", 5, "Excellent product!");
-        ReviewDTO savedReview = getReviewClient().post()
-                .uri("/reviews")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
-                .bodyValue(review)
-                .retrieve()
-                .bodyToMono(ReviewDTO.class)
-                .block();
+        ReviewDTO savedReview = createReview(savedProduct);
 
         assertNotNull(savedReview);
         assertEquals(savedProduct.id(), savedReview.productId());
         assertEquals("cust01", savedReview.customerId());
     }
 
-    private static WebClient getReviewClient() {
+    @Test
+    void testDeleteProductAndReviewGetsDeleted() {
+        // Create a product
+        ProductDTO savedProduct = createProduct();
+        assertNotNull(savedProduct);
+        assertNotNull(savedProduct.id());
+
+        // Post a review for that product
+        ReviewDTO savedReview = createReview(savedProduct);
+        assertNotNull(savedReview);
+        assertNotNull(savedReview.id());
+
+        // Delete the product
+        getProductWebClient().delete()
+                .uri("/products/{id}", savedProduct.id())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+
+        Integer productStatus = getProductWebClient().get()
+                .uri("/products/{id}", savedProduct.id())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                .exchangeToMono(response -> response.toBodilessEntity().map(r -> response.statusCode().value()))
+                .block();
+
+        assertNotNull(productStatus, "Product status should not be null");
+        int status = productStatus; // Safe unboxing after null-check
+        assertTrue(status == 404 || status == 410,
+                "Expected 404/410 for deleted product but got " + productStatus);
+
+        Integer reviewStatus = getReviewWebClient().get()
+                .uri("/reviews/{id}", savedReview.id())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                .exchangeToMono(response -> response.toBodilessEntity().map(r -> response.statusCode().value()))
+                .block();
+
+        assertNotNull(reviewStatus, "Review status should not be null");
+        status = reviewStatus; // Safe unboxing after null-check
+        assertTrue(status == 404 || status == 410,
+                "Expected 404/410 for deleted review but got " + reviewStatus);
+    }
+
+    private static ReviewDTO createReview(ProductDTO product) {
+        ReviewDTO review = new ReviewDTO(product.id(), "cust01", 5, "Excellent product!");
+        return getReviewWebClient().post()
+                .uri("/reviews")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                .bodyValue(review)
+                .retrieve()
+                .bodyToMono(ReviewDTO.class)
+                .block();
+    }
+
+    private static ProductDTO createProduct() {
+        ProductDTO product = new ProductDTO(null, "Test Product", 9.99);
+        return getProductWebClient().post()
+                .uri("/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                .bodyValue(product)
+                .retrieve()
+                .bodyToMono(ProductDTO.class)
+                .block();
+    }
+
+    private static WebClient getReviewWebClient() {
         if (reviewClient == null) {
             reviewClient = getWebClient(reviewEndpoint);
         }
@@ -72,7 +122,8 @@ public class E2ETests {
 
     private static void login() {
         // WebClient pointing to local services
-        WebClient webClient; webClient = WebClient.builder()
+        WebClient webClient;
+        webClient = WebClient.builder()
                 .baseUrl(authEndpoint) // auth service base
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -85,7 +136,8 @@ public class E2ETests {
                         .queryParam("password", "1234")
                         .build())
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
+                .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {
+                })
                 .block();
 
         assertNotNull(response);
