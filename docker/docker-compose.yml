@@ -81,20 +81,3 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-
-  e2e-tests:
-    profiles: ["dev"]
-    working_dir: /app
-    environment:
-      AUTH_ENDPOINT: http://auth:8080
-      PRODUCT_ENDPOINT: http://products:8081
-      REVIEW_ENDPOINT: http://reviews:8082
-    depends_on:
-      mysql:
-        condition: service_healthy
-      auth:
-        condition: service_healthy
-      products:
-        condition: service_healthy
-      reviews:
-        condition: service_healthy

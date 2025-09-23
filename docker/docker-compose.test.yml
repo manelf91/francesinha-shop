@@ -24,7 +24,21 @@ services:
 
   e2e-tests:
     image: maven:3.9.9-eclipse-temurin-24
+    working_dir: /app
     volumes:
       - ../e2e-tests:/app
       - ~/.m2:/root/.m2
+    environment:
+      AUTH_ENDPOINT: http://auth:8080
+      PRODUCT_ENDPOINT: http://products:8081
+      REVIEW_ENDPOINT: http://reviews:8082
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      products:
+        condition: service_healthy
+      reviews:
+        condition: service_healthy
     command: mvn verify
