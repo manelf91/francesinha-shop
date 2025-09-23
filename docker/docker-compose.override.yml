@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  auth:
+    image: maven:3.9.9-eclipse-temurin-24
+    volumes:
+      - ../services-auth:/app
+      - ~/.m2:/root/.m2
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+  products:
+    image: maven:3.9.9-eclipse-temurin-24
+    volumes:
+      - ../services-products:/app
+      - ~/.m2:/root/.m2
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+  reviews:
+    image: maven:3.9.9-eclipse-temurin-24
+    volumes:
+      - ../services-reviews:/app
+      - ~/.m2:/root/.m2
+    command: mvn spring-boot:run -Dspring-boot.run.profiles=test
+
+  e2e-tests:
+    image: maven:3.9.9-eclipse-temurin-24
+    volumes:
+      - ../e2e-tests:/app
+      - ~/.m2:/root/.m2
+    command: mvn verify

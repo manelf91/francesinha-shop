@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.1
+    container_name: mysql
+    volumes:
+      - ./databases_init.sql:/docker-entrypoint-initdb.d/databases_init.sql:ro
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 20s
+      timeout: 5s
+      retries: 50
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_DATABASE: francesinha_reviews
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD","mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 20s
+      timeout: 5s
+      retries: 50
+
+  auth:
+    working_dir: /app
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 50
+      start_period: 20s
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  products:
+    working_dir: /app
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      AUTH_HOST: auth
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 50
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  reviews:
+    working_dir: /app
+    environment:
+      AUTH_HOST: auth
+      MONGO_HOST: mongodb
+      MONGO_USER: root
+      MONGO_PASSWORD: example
+      PRODUCT_ENDPOINT: http://products:8081
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: "curl --fail --silent localhost:8082/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 50
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  e2e-tests:
+    profiles: ["dev"]
+    working_dir: /app
+    environment:
+      AUTH_ENDPOINT: http://auth:8080
+      PRODUCT_ENDPOINT: http://products:8081
+      REVIEW_ENDPOINT: http://reviews:8082
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      products:
+        condition: service_healthy
+      reviews:
+        condition: service_healthy

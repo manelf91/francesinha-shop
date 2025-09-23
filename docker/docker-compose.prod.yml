@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  auth:
+    build:
+      context: ../services-auth
+      dockerfile: ../docker/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+    ports:
+      - "8080:8080"
+
+  products:
+    build:
+      context: ../services-products
+      dockerfile: ../docker/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+    ports:
+      - "8081:8081"
+
+  reviews:
+    build:
+      context: ../services-reviews
+      dockerfile: ../docker/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+    ports:
+      - "8082:8082"

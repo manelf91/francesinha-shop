@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -17,7 +17,7 @@ public class KeyConfig {
 
     @Bean
     public RSAPrivateKey rsaPrivateKey() throws Exception {
-        String key = Files.readString(Path.of("src/main/resources/keys/auth_private.pem"))
+        String key = Files.readString(Paths.get(getClass().getResource("/keys/auth_private.pem").toURI()))
                 .replaceAll("-----\\w+ PRIVATE KEY-----", "")
                 .replaceAll("\\s", "");
         byte[] decoded = Base64.getDecoder().decode(key);
@@ -27,7 +27,7 @@ public class KeyConfig {
 
     @Bean
     public RSAPublicKey rsaPublicKey() throws Exception {
-        String key = Files.readString(Path.of("src/main/resources/keys/auth_public.pem"))
+        String key = Files.readString(Paths.get(getClass().getResource("/keys/auth_public.pem").toURI()))
                 .replaceAll("-----\\w+ PUBLIC KEY-----", "")
                 .replaceAll("\\s", "");
         byte[] decoded = Base64.getDecoder().decode(key);
