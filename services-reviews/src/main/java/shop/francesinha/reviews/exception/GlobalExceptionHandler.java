@@ -33,6 +33,12 @@ public class GlobalExceptionHandler {
         return Map.of("message", "Invalid ID: " + ex.getValue());
     }
 
+    @ExceptionHandler(ReviewNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleReviewNotFound(ReviewNotFoundException ex) {
+        return Map.of("message", ex.getMessage());
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> handleRuntime(RuntimeException ex) {

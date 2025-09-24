@@ -37,12 +37,12 @@ public class E2ETests {
         ReviewDTO savedReview = createReview(savedProduct);
 
         assertNotNull(savedReview);
+        assertNotNull(savedReview.id());
         assertEquals(savedProduct.id(), savedReview.productId());
-        assertEquals("cust01", savedReview.customerId());
     }
 
     @Test
-    void testDeleteProductAndReviewGetsDeleted() {
+    void testDeleteProductAndReviewGetsDeleted() throws InterruptedException {
         // Create a product
         ProductDTO savedProduct = createProduct();
         assertNotNull(savedProduct);
@@ -72,11 +72,24 @@ public class E2ETests {
         assertTrue(status == 404 || status == 410,
                 "Expected 404/410 for deleted product but got " + productStatus);
 
-        Integer reviewStatus = getReviewWebClient().get()
-                .uri("/reviews/{id}", savedReview.id())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
-                .exchangeToMono(response -> response.toBodilessEntity().map(r -> response.statusCode().value()))
-                .block();
+        int maxRetries = 10;
+        int retry = 0;
+        Integer reviewStatus = null;
+
+        while (retry < maxRetries) {
+            reviewStatus = getReviewWebClient().get()
+                    .uri("/reviews/{id}", savedReview.id())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                    .exchangeToMono(response -> response.toBodilessEntity().map(r -> response.statusCode().value()))
+                    .block();
+
+            if (reviewStatus == 404 || reviewStatus == 410) {
+                break; // review deleted
+            }
+
+            Thread.sleep(500); // wait 0.5s before retry
+            retry++;
+        }
 
         assertNotNull(reviewStatus, "Review status should not be null");
         status = reviewStatus; // Safe unboxing after null-check

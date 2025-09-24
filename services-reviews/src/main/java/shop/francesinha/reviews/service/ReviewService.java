@@ -9,11 +9,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import shop.francesinha.reviews.dto.ProductDTO;
-import shop.francesinha.reviews.dto.ProductDeletedEvent;
+import shop.francesinha.reviews.exception.ReviewNotFoundException;
 import shop.francesinha.reviews.model.Review;
 import shop.francesinha.reviews.repo.ReviewRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReviewService {
@@ -31,7 +32,7 @@ public class ReviewService {
     }
 
     public Review getReviewById(String id) {
-        return reviewRepository.findById(id).orElseThrow(() -> new RuntimeException("Review not found"));
+        return reviewRepository.findById(id).orElseThrow(() -> new ReviewNotFoundException(id));
     }
 
     public Review saveReview(Review review) {
@@ -76,11 +77,11 @@ public class ReviewService {
         }
     }
 
-    @KafkaListener(topics = "product-deleted", groupId = "reviews-service")
-    public void onProductDeleted(ProductDeletedEvent event) {
-        Long productId = event.getProductId();
+    @KafkaListener(topics = "product-deleted")
+    public void onProductDeleted(Map<String, Object> event) {
+        String productId = event.get("productId").toString();
         // idempotent deletion
-        reviewRepository.deleteByProductId(productId);
-        logger.info("Deleted reviews for product {}", productId);
+        int deletedReviews =  reviewRepository.deleteByProductId(productId);
+        logger.info("Deleted {} reviews for product {}", deletedReviews, productId);
     }
 }

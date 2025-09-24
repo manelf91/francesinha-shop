@@ -12,7 +12,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import shop.francesinha.products.dto.ProductDeletedEvent;
+import shop.francesinha.products.kafka.KafkaService;
 import shop.francesinha.products.model.Product;
 import shop.francesinha.products.repo.ProductRepository;
 
@@ -34,11 +34,13 @@ public class ProductCachingIT {
     private CacheManager cacheManager;
 
     @MockitoBean
+    KafkaService kafkaService;
+
+    @MockitoBean
     JwtDecoder jwtDecoder;  // <— satisfies WebSecurityConfig
 
     @MockitoBean
-    KafkaTemplate<String, ProductDeletedEvent> kafkaTemplate;  // <— satisfies WebSecurityConfig
-
+    KafkaTemplate<String, Object> kafkaTemplate;  // <— satisfies WebSecurityConfig
 
     @Test
     void testProductsCache() {

@@ -3,6 +3,7 @@ package shop.francesinha.products.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import shop.francesinha.products.kafka.KafkaService;
 import shop.francesinha.products.model.Product;
 import shop.francesinha.products.repo.ProductRepository;
 
@@ -34,6 +36,9 @@ public class ProductControllerIT {
 
     @MockitoBean
     JwtDecoder jwtDecoder;  // <— satisfies WebSecurityConfig
+
+    @MockitoBean
+    KafkaService kafkaService;
 
     @BeforeEach
     void setUp() {
@@ -101,6 +106,8 @@ public class ProductControllerIT {
         Product p = new Product();
         p.setName("To Delete");
         Product saved = productRepository.save(p);
+
+        Mockito.doNothing().when(kafkaService).deleteRelatedReviews(saved.getId());
 
         mockMvc.perform(delete("/products/" + saved.getId()))
                 .andExpect(status().isOk());

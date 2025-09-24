@@ -12,15 +12,15 @@ spring:
   kafka:
     bootstrap-servers: kafka:9092
     consumer:
-      properties:
-        spring:
-          json:
-            trusted:
-              packages: '*'
+      group-id: reviews-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 logging:
   level:
     org.springframework.web: DEBUG
     org.springframework.web.filter: DEBUG
+    org.springframework.boot.actuate.endpoint.web.servlet: WARN
     shop.francesinha.products: INFO
     org.hibernate: ERROR
 management:

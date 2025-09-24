@@ -7,5 +7,5 @@ import shop.francesinha.reviews.model.Review;
 @Repository
 public interface ReviewRepository extends MongoRepository<Review, String> {
 
-    void deleteByProductId(Long productId);
+    int deleteByProductId(String productId);
 }
