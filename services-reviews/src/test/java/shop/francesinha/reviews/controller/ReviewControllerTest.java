@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import shop.francesinha.reviews.common.TestUtils;
+import shop.francesinha.reviews.exception.ReviewNotFoundException;
 import shop.francesinha.reviews.model.Review;
 import shop.francesinha.reviews.service.ReviewService;
 
@@ -103,9 +104,10 @@ public class ReviewControllerTest {
 
     @Test
     void testDeleteReview_NotFound() throws Exception {
-        Mockito.doThrow(new RuntimeException("Review not found")).when(reviewService).deleteReview("99");
-        TestUtils.deleteEndpoint(mockMvc, "/reviews/99")
-                .andExpect(status().isInternalServerError())
-                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Review not found")));
+        String id = "99";
+        Mockito.doThrow(new ReviewNotFoundException(id)).when(reviewService).deleteReview(id);
+        TestUtils.deleteEndpoint(mockMvc, "/reviews/" + id)
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(Objects.requireNonNull(result.getResolvedException()).getMessage().contains("Review with ID " + id + " not found")));
     }
 }

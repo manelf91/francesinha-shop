@@ -33,7 +33,7 @@ public class KafkaService {
     }
 
     @PostConstruct
-    private void createTopicIfNotExists() {
+    public void createTopicIfNotExists() {
         String topicName = "product-deleted";
         Properties props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
