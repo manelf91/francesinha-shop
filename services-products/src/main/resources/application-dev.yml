@@ -1,18 +1,41 @@
+server:
+  port: 8081
 spring:
+  datasource:
+    hikari:
+      initialization-fail-timeout: 60000
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 1
+    url: jdbc:mysql://:localhost:3306/francesinha_products?useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
   jpa:
-    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQLDialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
   kafka:
-    consumer:
-      group-id: reviews-service
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-        spring.json.value.default.type: java.util.Map
+    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 logging:
   level:
-    shop.francesinha.backend: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.filter: DEBUG
+    shop.francesinha.products: INFO
+    org.hibernate: ERROR
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
