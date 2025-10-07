@@ -1,6 +1,30 @@
+server:
+  port: 8080
 spring:
+  datasource:
+    hikari:
+      initialization-fail-timeout: 60000
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 1
+    url: jdbc:mysql://localhost:3306/francesinha_users?useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
   jpa:
     show-sql: true
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQLDialect
 logging:
   level:
-    shop.francesinha.backend: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.filter: DEBUG
+    shop.francesinha.products: INFO
+    org.hibernate: ERROR
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

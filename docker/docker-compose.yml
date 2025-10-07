@@ -55,6 +55,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
+  gateway:
+    image: maven:3.9.9-eclipse-temurin-24
+    working_dir: /app
+    ports:
+      - "8083:8083"
+
   auth:
     working_dir: /app
     environment:

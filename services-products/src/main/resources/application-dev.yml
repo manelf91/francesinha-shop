@@ -7,7 +7,7 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
       minimum-idle: 1
-    url: jdbc:mysql://:localhost:3306/francesinha_products?useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/francesinha_products?useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 1234
   jpa:
@@ -21,7 +21,7 @@ spring:
         jwt:
           jwk-set-uri: http://localhost:8080/auth/.well-known/jwks.json
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:9093
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -31,6 +31,7 @@ logging:
     org.springframework.web.filter: DEBUG
     shop.francesinha.products: INFO
     org.hibernate: ERROR
+    org.apache.kafka: DEBUG
 management:
   endpoints:
     web:

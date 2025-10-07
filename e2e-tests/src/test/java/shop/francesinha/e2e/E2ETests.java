@@ -17,6 +17,7 @@ public class E2ETests {
     private static final String authEndpoint = System.getenv().getOrDefault("AUTH_ENDPOINT", "http://localhost:8080");
     private static final String productEndpoint = System.getenv().getOrDefault("PRODUCT_ENDPOINT", "http://localhost:8081");
     private static final String reviewEndpoint = System.getenv().getOrDefault("REVIEW_ENDPOINT", "http://localhost:8082");
+    private static final String gatewayEndpoint = System.getenv().getOrDefault("GATEWAY_ENDPOINT", "http://localhost:8083");
     private static WebClient productClient;
     private static WebClient reviewClient;
 
@@ -95,6 +96,21 @@ public class E2ETests {
         status = reviewStatus; // Safe unboxing after null-check
         assertTrue(status == 404 || status == 410,
                 "Expected 404/410 for deleted review but got " + reviewStatus);
+    }
+
+    @Test
+    void testGatewayAccess() {
+        WebClient gatewayClient = getWebClient(gatewayEndpoint);
+
+        Integer status = gatewayClient.get()
+                .uri("/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authToken)
+                .exchangeToMono(response -> response.toBodilessEntity().map(r -> response.statusCode().value()))
+                .block();
+
+        assertNotNull(status, "Gateway products status should not be null");
+        int s = status; // Safe unboxing after null-check
+        assertEquals(200, s, "Expected 200 from gateway but got " + status);
     }
 
     private static ReviewDTO createReview(ProductDTO product) {
